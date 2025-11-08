@@ -1,21 +1,21 @@
 import { useEffect, useState } from 'react'
+import { getBodegas } from '../services/bodegasService'
+import { getWarehouseMetadata, getWarehouseNotes } from '../services/warehouseInsightsService'
 import {
-  getBodegaStatusLegend,
-  getBodegas,
-  getWarehouseMetadata,
-  getWarehouseNotes,
-} from '../services/bodegasService'
-import { getBodegaStatusColor, getBodegaStatusLabel } from '../domain/bodegas'
+  getAllBodegaStatuses,
+  getBodegaStatusColor,
+  getBodegaStatusLabel,
+} from '../domain/bodegas'
+import { toStorageUnit } from '../domain/storageUnits'
 
 function StorageMap() {
   const [storageUnits, setStorageUnits] = useState([])
-  const [statusLegend, setStatusLegend] = useState([])
   const [warehouseMetadata, setWarehouseMetadata] = useState(null)
   const [operationalNotes, setOperationalNotes] = useState([])
+  const statusLegend = getAllBodegaStatuses()
 
   useEffect(() => {
-    getBodegas().then(setStorageUnits)
-    getBodegaStatusLegend().then(setStatusLegend)
+    getBodegas().then((bodegas) => setStorageUnits(bodegas.map(toStorageUnit)))
     getWarehouseMetadata().then(setWarehouseMetadata)
     getWarehouseNotes().then(setOperationalNotes)
   }, [])
