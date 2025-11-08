@@ -1,24 +1,24 @@
 const storageUnits = [
-  { id: 'A1', size: '120 m²', status: 'Disponible', span: 'span-2x2' },
-  { id: 'A2', size: '95 m²', status: 'Ocupada', span: 'span-1x2' },
-  { id: 'A3', size: '110 m²', status: 'En mantenimiento', span: 'span-1x2' },
-  { id: 'B1', size: '140 m²', status: 'Reservada', span: 'span-2x3' },
-  { id: 'B2', size: '85 m²', status: 'Disponible', span: 'span-1x1' },
-  { id: 'B3', size: '85 m²', status: 'Disponible', span: 'span-1x1' },
-  { id: 'C1', size: '100 m²', status: 'Ocupada', span: 'span-2x2' },
-  { id: 'C2', size: '75 m²', status: 'Disponible', span: 'span-1x1' },
-  { id: 'C3', size: '75 m²', status: 'Ocupada', span: 'span-1x1' },
-  { id: 'D1', size: '90 m²', status: 'Disponible', span: 'span-1x2' },
-  { id: 'D2', size: '90 m²', status: 'Reservada', span: 'span-1x2' },
-  { id: 'E1', size: '130 m²', status: 'Disponible', span: 'span-2x2' },
-  { id: 'E2', size: '120 m²', status: 'Ocupada', span: 'span-2x2' },
+  { id: 'A1', size: '120 m²', status: 'Disponible', statusKey: 'available', span: 'span-2x2' },
+  { id: 'A2', size: '95 m²', status: 'Ocupada', statusKey: 'occupied', span: 'span-1x2' },
+  { id: 'A3', size: '110 m²', status: 'Próxima a vencer', statusKey: 'expiring', span: 'span-1x2' },
+  { id: 'B1', size: '140 m²', status: 'Reservada', statusKey: 'reserved', span: 'span-2x3' },
+  { id: 'B2', size: '85 m²', status: 'Disponible', statusKey: 'available', span: 'span-1x1' },
+  { id: 'B3', size: '85 m²', status: 'Disponible', statusKey: 'available', span: 'span-1x1' },
+  { id: 'C1', size: '100 m²', status: 'Ocupada', statusKey: 'occupied', span: 'span-2x2' },
+  { id: 'C2', size: '75 m²', status: 'Disponible', statusKey: 'available', span: 'span-1x1' },
+  { id: 'C3', size: '75 m²', status: 'Ocupada', statusKey: 'occupied', span: 'span-1x1' },
+  { id: 'D1', size: '90 m²', status: 'Disponible', statusKey: 'available', span: 'span-1x2' },
+  { id: 'D2', size: '90 m²', status: 'Reservada', statusKey: 'reserved', span: 'span-1x2' },
+  { id: 'E1', size: '130 m²', status: 'Disponible', statusKey: 'available', span: 'span-2x2' },
+  { id: 'E2', size: '120 m²', status: 'Próxima a vencer', statusKey: 'expiring', span: 'span-2x2' },
 ]
 
 const statusLegend = [
   { label: 'Disponible', color: 'available' },
   { label: 'Reservada', color: 'reserved' },
   { label: 'Ocupada', color: 'occupied' },
-  { label: 'En mantenimiento', color: 'maintenance' },
+  { label: 'Próxima a vencer', color: 'expiring' },
 ]
 
 function StorageMap() {
@@ -51,12 +51,10 @@ function StorageMap() {
             <div className="warehouse-corridor warehouse-corridor--horizontal" />
             <div className="warehouse-corridor warehouse-corridor--vertical" />
             {storageUnits.map((unit) => (
-              <div key={unit.id} className={`storage-unit ${unit.span}`}>
+              <div key={unit.id} className={`storage-unit ${unit.span} storage-unit--${unit.statusKey}`}>
                 <span className="storage-unit__id">{unit.id}</span>
                 <span className="storage-unit__size">{unit.size}</span>
-                <span className={`storage-unit__status storage-unit__status--${unit.status.replace(' ', '-').toLowerCase()}`}>
-                  {unit.status}
-                </span>
+                <span className="storage-unit__status-label">{unit.status}</span>
               </div>
             ))}
           </div>
