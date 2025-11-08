@@ -1,19 +1,23 @@
 import { useEffect, useState } from 'react'
 import { getBodegas } from '../services/bodegasService'
-import { getWarehouseMetadata, getWarehouseNotes } from '../services/warehouseInsightsService'
+import {
+  getWarehouseMetadata,
+  getWarehouseNotes,
+  type WarehouseMetadata,
+} from '../services/warehouseInsightsService'
 import {
   getAllBodegaStatuses,
   getBodegaStatusColor,
   getBodegaStatusLabel,
 } from '../domain/bodegas'
-import { toStorageUnit } from '../domain/storageUnits'
+import type { StorageUnit } from '../domain/storageUnits'
 
 function StorageMap() {
-  const [storageUnits, setStorageUnits] = useState([])
-  const [warehouseMetadata, setWarehouseMetadata] = useState(null)
-  const [operationalNotes, setOperationalNotes] = useState([])
+  const [storageUnits, setStorageUnits] = useState<StorageUnit[]>([])
+  const [warehouseMetadata, setWarehouseMetadata] = useState<WarehouseMetadata | null>(null)
+  const [operationalNotes, setOperationalNotes] = useState<string[]>([])
   const [isLoadingBodegas, setIsLoadingBodegas] = useState(true)
-  const [bodegasError, setBodegasError] = useState(null)
+  const [bodegasError, setBodegasError] = useState<string | null>(null)
   const statusLegend = getAllBodegaStatuses()
 
   useEffect(() => {
@@ -24,7 +28,7 @@ function StorageMap() {
         setIsLoadingBodegas(true)
         const bodegas = await getBodegas()
         if (!isMounted) return
-        setStorageUnits(bodegas.map(toStorageUnit))
+        setStorageUnits(bodegas)
         setBodegasError(null)
       } catch (error) {
         if (!isMounted) return
@@ -89,6 +93,9 @@ function StorageMap() {
               <p className="warehouse-map__message warehouse-map__message--error">
                 {bodegasError || 'No fue posible cargar las bodegas.'}
               </p>
+            )}
+            {!isLoadingBodegas && !bodegasError && storageUnits.length === 0 && (
+              <p className="warehouse-map__message">No hay bodegas para mostrar.</p>
             )}
             {!isLoadingBodegas && !bodegasError &&
               storageUnits.map((unit) => (
