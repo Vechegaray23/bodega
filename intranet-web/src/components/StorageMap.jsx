@@ -48,8 +48,6 @@ function StorageMap() {
         <div className="warehouse-map">
           <div className="warehouse-map__grid">
             <div className="warehouse-map__background" />
-            <div className="warehouse-corridor warehouse-corridor--horizontal" />
-            <div className="warehouse-corridor warehouse-corridor--vertical" />
             {storageUnits.map((unit) => (
               <div key={unit.id} className={`storage-unit ${unit.span} storage-unit--${unit.statusKey}`}>
                 <span className="storage-unit__id">{unit.id}</span>

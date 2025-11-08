@@ -526,30 +526,6 @@ body {
   z-index: 0;
 }
 
-.warehouse-corridor {
-  position: absolute;
-  background: rgba(148, 163, 184, 0.35);
-  border-radius: 12px;
-  mix-blend-mode: multiply;
-  z-index: 0;
-}
-
-.warehouse-corridor--horizontal {
-  height: 18px;
-  left: 5%;
-  right: 5%;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.warehouse-corridor--vertical {
-  width: 18px;
-  top: 8%;
-  bottom: 8%;
-  left: 52%;
-  transform: translateX(-50%);
-}
-
 .storage-unit {
   position: relative;
   border-radius: 16px;
