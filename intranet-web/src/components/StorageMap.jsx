@@ -1,23 +1,59 @@
 import { useEffect, useState } from 'react'
+import { getBodegas } from '../services/bodegasService'
+import { getWarehouseMetadata, getWarehouseNotes } from '../services/warehouseInsightsService'
 import {
-  getBodegaStatusLegend,
-  getBodegas,
-  getWarehouseMetadata,
-  getWarehouseNotes,
-} from '../services/bodegasService'
-import { getBodegaStatusColor, getBodegaStatusLabel } from '../domain/bodegas'
+  getAllBodegaStatuses,
+  getBodegaStatusColor,
+  getBodegaStatusLabel,
+} from '../domain/bodegas'
+import { toStorageUnit } from '../domain/storageUnits'
 
 function StorageMap() {
   const [storageUnits, setStorageUnits] = useState([])
-  const [statusLegend, setStatusLegend] = useState([])
   const [warehouseMetadata, setWarehouseMetadata] = useState(null)
   const [operationalNotes, setOperationalNotes] = useState([])
+  const [isLoadingBodegas, setIsLoadingBodegas] = useState(true)
+  const [bodegasError, setBodegasError] = useState(null)
+  const statusLegend = getAllBodegaStatuses()
 
   useEffect(() => {
-    getBodegas().then(setStorageUnits)
-    getBodegaStatusLegend().then(setStatusLegend)
-    getWarehouseMetadata().then(setWarehouseMetadata)
-    getWarehouseNotes().then(setOperationalNotes)
+    let isMounted = true
+
+    async function loadBodegas() {
+      try {
+        setIsLoadingBodegas(true)
+        const bodegas = await getBodegas()
+        if (!isMounted) return
+        setStorageUnits(bodegas.map(toStorageUnit))
+        setBodegasError(null)
+      } catch (error) {
+        if (!isMounted) return
+        console.error('No fue posible cargar las bodegas', error)
+        setBodegasError(
+          error instanceof Error ? error.message : 'No fue posible cargar las bodegas.'
+        )
+      } finally {
+        if (isMounted) {
+          setIsLoadingBodegas(false)
+        }
+      }
+    }
+
+    loadBodegas()
+    getWarehouseMetadata().then((metadata) => {
+      if (isMounted) {
+        setWarehouseMetadata(metadata)
+      }
+    })
+    getWarehouseNotes().then((notes) => {
+      if (isMounted) {
+        setOperationalNotes(notes)
+      }
+    })
+
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   return (
@@ -46,16 +82,25 @@ function StorageMap() {
         <div className="warehouse-map">
           <div className="warehouse-map__grid">
             <div className="warehouse-map__background" />
-            {storageUnits.map((unit) => (
-              <div
-                key={unit.id}
-                className={`storage-unit ${unit.span} storage-unit--${getBodegaStatusColor(unit.status)}`}
-              >
-                <span className="storage-unit__id">{unit.id}</span>
-                <span className="storage-unit__size">{unit.size}</span>
-                <span className="storage-unit__status-label">{getBodegaStatusLabel(unit.status)}</span>
-              </div>
-            ))}
+            {isLoadingBodegas && (
+              <p className="warehouse-map__message">Cargando bodegas…</p>
+            )}
+            {!isLoadingBodegas && bodegasError && (
+              <p className="warehouse-map__message warehouse-map__message--error">
+                {bodegasError || 'No fue posible cargar las bodegas.'}
+              </p>
+            )}
+            {!isLoadingBodegas && !bodegasError &&
+              storageUnits.map((unit) => (
+                <div
+                  key={unit.id}
+                  className={`storage-unit ${unit.span} storage-unit--${getBodegaStatusColor(unit.status)}`}
+                >
+                  <span className="storage-unit__id">{unit.id}</span>
+                  <span className="storage-unit__size">{unit.size}</span>
+                  <span className="storage-unit__status-label">{getBodegaStatusLabel(unit.status)}</span>
+                </div>
+              ))}
           </div>
         </div>
         <aside className="warehouse-sidebar">
