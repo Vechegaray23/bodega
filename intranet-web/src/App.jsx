@@ -1,4 +1,11 @@
+import { useState } from 'react'
 import './App.css'
+import StorageMap from './components/StorageMap'
+
+const menuItems = [
+  { id: 'dashboard', label: 'Inicio' },
+  { id: 'warehouse', label: 'Plano de bodegas' },
+]
 
 const quickLinks = [
   { title: 'Solicitar vacaciones', description: 'Administra tus días libres y supervisa el estado de tus solicitudes.', action: 'Ir a RRHH' },
@@ -21,26 +28,23 @@ const events = [
 const announcements = [
   {
     title: 'Nueva plataforma de bienestar',
-    description:
-      'Accede a sesiones de mindfulness, asesoramiento nutricional y descuentos en gimnasios aliados. Inscríbete antes del 30 de junio.',
+    description: 'Accede a sesiones de mindfulness, asesoramiento nutricional y descuentos en gimnasios aliados. Inscríbete antes del 30 de junio.',
   },
   {
     title: 'Actualización de políticas de trabajo híbrido',
-    description:
-      'Revisá la guía completa en la sección de Recursos Humanos. Entrará en vigencia el próximo mes.',
+    description: 'Revisá la guía completa en la sección de Recursos Humanos. Entrará en vigencia el próximo mes.',
   },
 ]
 
-function App() {
+function Dashboard() {
   return (
-    <div className="app">
+    <>
       <header className="hero">
         <div className="hero__content">
           <p className="hero__badge">Intranet Corporativa</p>
           <h1>Todo lo que necesitás para estar al día en un mismo lugar</h1>
           <p className="hero__subtitle">
-            Accedé rápidamente a recursos, noticias y herramientas clave. Seguimos construyendo un equipo conectado y
-            colaborativo.
+            Accedé rápidamente a recursos, noticias y herramientas clave. Seguimos construyendo un equipo conectado y colaborativo.
           </p>
           <div className="hero__actions">
             <button className="button button--primary">Ver OKRs</button>
@@ -71,24 +75,21 @@ function App() {
               <span className="news-card__tag">People</span>
               <h3>Reconocimiento a equipos destacados del trimestre</h3>
               <p>
-                Conocé a los equipos que alcanzaron los mejores resultados y descubre sus estrategias para compartirlas con
-                tu squad.
+                Conocé a los equipos que alcanzaron los mejores resultados y descubre sus estrategias para compartirlas con tu squad.
               </p>
             </article>
             <article className="news-card">
               <span className="news-card__tag">Tech</span>
               <h3>Lanzamos la nueva app móvil de clientes</h3>
               <p>
-                La aplicación incorpora funcionalidades de autoservicio y monitoreo en tiempo real. Explorá el roadmap y los
-                próximos hitos.
+                La aplicación incorpora funcionalidades de autoservicio y monitoreo en tiempo real. Explorá el roadmap y los próximos hitos.
               </p>
             </article>
             <article className="news-card">
               <span className="news-card__tag">Cultura</span>
               <h3>Semana de impacto social</h3>
               <p>
-                Sumate a las actividades de voluntariado junto a organizaciones aliadas. Hay opciones presenciales y
-                virtuales.
+                Sumate a las actividades de voluntariado junto a organizaciones aliadas. Hay opciones presenciales y virtuales.
               </p>
             </article>
           </div>
@@ -145,6 +146,42 @@ function App() {
           ))}
         </div>
       </aside>
+    </>
+  )
+}
+
+function App() {
+  const [activePage, setActivePage] = useState('dashboard')
+
+  return (
+    <div className="app-shell">
+      <nav className="main-nav">
+        <div className="main-nav__brand">
+          <span className="main-nav__brand-mark" />
+          <span>Intranet Bodega</span>
+        </div>
+        <ul className="main-nav__items">
+          {menuItems.map((item) => (
+            <li key={item.id}>
+              <button
+                type="button"
+                className={`main-nav__link ${activePage === item.id ? 'is-active' : ''}`}
+                onClick={() => setActivePage(item.id)}
+              >
+                {item.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      {activePage === 'dashboard' ? (
+        <div className="app">
+          <Dashboard />
+        </div>
+      ) : (
+        <StorageMap />
+      )}
     </div>
   )
 }
