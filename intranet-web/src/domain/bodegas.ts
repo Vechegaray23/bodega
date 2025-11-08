@@ -1,5 +1,14 @@
 export type BodegaStatus = 'DISPONIBLE' | 'RESERVADA' | 'OCUPADA' | 'POR_VENCER'
 
+export interface Bodega {
+  id: string
+  codigo: string
+  nombre: string
+  metrosCuadrados: number
+  piso: number
+  estado: BodegaStatus
+}
+
 type BodegaStatusConfig = {
   label: string
   color: string
