@@ -424,6 +424,36 @@ body {
   transition: all 0.2s ease;
 }
 
+.main-nav__auth {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.main-nav__user {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.main-nav__user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+}
+
+.main-nav__user-name {
+  font-weight: 600;
+}
+
+.main-nav__user-roles {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(226, 232, 240, 0.75);
+}
+
 .main-nav__link:hover {
   border-color: rgba(148, 163, 184, 0.35);
   background: rgba(148, 163, 184, 0.12);

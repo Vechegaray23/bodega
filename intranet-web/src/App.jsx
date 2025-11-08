@@ -1,42 +1,31 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 import StorageMap from './components/StorageMap'
-
-const menuItems = [
-  { id: 'dashboard', label: 'Inicio' },
-  { id: 'warehouse', label: 'Plano de bodegas' },
-]
-
-const quickLinks = [
-  { title: 'Solicitar vacaciones', description: 'Administra tus días libres y supervisa el estado de tus solicitudes.', action: 'Ir a RRHH' },
-  { title: 'Mesa de ayuda', description: 'Genera tickets y haz seguimiento de tus incidencias técnicas.', action: 'Abrir ticket' },
-  { title: 'Directorio', description: 'Encuentra información de contacto de todo el equipo.', action: 'Ver personas' },
-]
-
-const highlights = [
-  { label: 'Satisfacción del equipo', value: '92%', trend: '+4.5% vs. mes anterior' },
-  { label: 'Proyectos activos', value: '18', trend: '6 entregas esta semana' },
-  { label: 'Capacitaciones', value: '5', trend: 'Nuevos cursos disponibles' },
-]
-
-const events = [
-  { date: '12 Jun', title: 'Demo trimestral', location: 'Auditorio principal / Streaming Teams' },
-  { date: '19 Jun', title: 'Taller de liderazgo', location: 'Sala Innovación' },
-  { date: '27 Jun', title: 'After Office', location: 'Terraza corporativa' },
-]
-
-const announcements = [
-  {
-    title: 'Nueva plataforma de bienestar',
-    description: 'Accede a sesiones de mindfulness, asesoramiento nutricional y descuentos en gimnasios aliados. Inscríbete antes del 30 de junio.',
-  },
-  {
-    title: 'Actualización de políticas de trabajo híbrido',
-    description: 'Revisá la guía completa en la sección de Recursos Humanos. Entrará en vigencia el próximo mes.',
-  },
-]
+import {
+  getDashboardAnnouncements,
+  getDashboardEvents,
+  getDashboardMetrics,
+  getDashboardNews,
+  getMenuItems,
+  getQuickLinks,
+} from './services/dashboardService'
+import { useAuth } from './contexts/AuthContext'
 
 function Dashboard() {
+  const [metrics, setMetrics] = useState([])
+  const [news, setNews] = useState([])
+  const [events, setEvents] = useState([])
+  const [announcements, setAnnouncements] = useState([])
+  const [quickLinks, setQuickLinks] = useState([])
+
+  useEffect(() => {
+    getDashboardMetrics().then(setMetrics)
+    getDashboardNews().then(setNews)
+    getDashboardEvents().then(setEvents)
+    getDashboardAnnouncements().then(setAnnouncements)
+    getQuickLinks().then(setQuickLinks)
+  }, [])
+
   return (
     <>
       <header className="hero">
@@ -52,11 +41,11 @@ function Dashboard() {
           </div>
         </div>
         <div className="hero__cards">
-          {highlights.map((highlight) => (
-            <div key={highlight.label} className="highlight-card">
-              <span className="highlight-card__label">{highlight.label}</span>
-              <strong className="highlight-card__value">{highlight.value}</strong>
-              <span className="highlight-card__trend">{highlight.trend}</span>
+          {metrics.map((item) => (
+            <div key={item.label} className="highlight-card">
+              <span className="highlight-card__label">{item.label}</span>
+              <strong className="highlight-card__value">{item.value}</strong>
+              <span className="highlight-card__trend">{item.trend}</span>
             </div>
           ))}
         </div>
@@ -71,27 +60,13 @@ function Dashboard() {
             </a>
           </div>
           <div className="news-grid">
-            <article className="news-card">
-              <span className="news-card__tag">People</span>
-              <h3>Reconocimiento a equipos destacados del trimestre</h3>
-              <p>
-                Conocé a los equipos que alcanzaron los mejores resultados y descubre sus estrategias para compartirlas con tu squad.
-              </p>
-            </article>
-            <article className="news-card">
-              <span className="news-card__tag">Tech</span>
-              <h3>Lanzamos la nueva app móvil de clientes</h3>
-              <p>
-                La aplicación incorpora funcionalidades de autoservicio y monitoreo en tiempo real. Explorá el roadmap y los próximos hitos.
-              </p>
-            </article>
-            <article className="news-card">
-              <span className="news-card__tag">Cultura</span>
-              <h3>Semana de impacto social</h3>
-              <p>
-                Sumate a las actividades de voluntariado junto a organizaciones aliadas. Hay opciones presenciales y virtuales.
-              </p>
-            </article>
+            {news.map((item) => (
+              <article key={item.title} className="news-card">
+                <span className="news-card__tag">{item.tag}</span>
+                <h3>{item.title}</h3>
+                <p>{item.description}</p>
+              </article>
+            ))}
           </div>
         </section>
 
@@ -151,7 +126,18 @@ function Dashboard() {
 }
 
 function App() {
+  const [menuItems, setMenuItems] = useState([])
   const [activePage, setActivePage] = useState('dashboard')
+  const { user, loginMock, logout } = useAuth()
+
+  useEffect(() => {
+    getMenuItems().then(setMenuItems)
+  }, [])
+
+  const userRolesLabel = useMemo(() => {
+    if (!user?.roles?.length) return ''
+    return user.roles.join(', ')
+  }, [user])
 
   return (
     <div className="app-shell">
@@ -173,6 +159,23 @@ function App() {
             </li>
           ))}
         </ul>
+        <div className="main-nav__auth">
+          {user ? (
+            <div className="main-nav__user">
+              <div className="main-nav__user-info">
+                <span className="main-nav__user-name">{user.name}</span>
+                {userRolesLabel ? <span className="main-nav__user-roles">{userRolesLabel}</span> : null}
+              </div>
+              <button type="button" className="button button--ghost" onClick={logout}>
+                Logout
+              </button>
+            </div>
+          ) : (
+            <button type="button" className="button button--primary" onClick={loginMock}>
+              Login demo
+            </button>
+          )}
+        </div>
       </nav>
 
       {activePage === 'dashboard' ? (
