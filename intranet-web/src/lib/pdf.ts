@@ -109,9 +109,13 @@ export function createPdfBlobFromText(text: string): Blob {
 
   const fontId = addObject('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>')
   const pagesObjId = addObject('')
-  const contentObjectIds = pageContents.map((content) =>
-    addObject(`<< /Length ${content.length} >>\nstream\n${content}\nendstream`),
-  )
+  const encoder = new TextEncoder()
+  const contentObjectIds = pageContents.map((content) => {
+    const streamData = `${content}\n`
+    const lengthInBytes = encoder.encode(streamData).length
+
+    return addObject(`<< /Length ${lengthInBytes} >>\nstream\n${streamData}endstream`)
+  })
   const pageObjectIds = pageContents.map((_, index) =>
     addObject(
       `<< /Type /Page /Parent ${pagesObjId} 0 R /MediaBox [0 0 ${PAGE_WIDTH.toFixed(
