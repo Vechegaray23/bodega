@@ -301,6 +301,41 @@ function StorageUnitModal({
     }
 
     const pdfBlob = createPdfBlobFromText(contractPreview)
+    const isBrowser = typeof window !== 'undefined'
+    const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : ''
+    const isSafari =
+      isBrowser &&
+      /safari/i.test(userAgent) &&
+      !/chrome|crios|android/i.test(userAgent)
+
+    if (isSafari) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        const dataUrl = typeof reader.result === 'string' ? reader.result : null
+
+        if (!dataUrl) {
+          setContractFeedback('No se pudo generar el PDF. Intentá nuevamente.')
+          return
+        }
+
+        const newWindow = window.open(dataUrl, '_blank')
+
+        if (!newWindow) {
+          window.location.href = dataUrl
+        }
+
+        setContractFeedback('Contrato PDF descargado correctamente.')
+      }
+
+      reader.onerror = () => {
+        setContractFeedback('No se pudo generar el PDF. Intentá nuevamente.')
+      }
+
+      reader.readAsDataURL(pdfBlob)
+
+      return
+    }
+
     const url = URL.createObjectURL(pdfBlob)
     const link = document.createElement('a')
     link.href = url
