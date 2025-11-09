@@ -1,0 +1,56 @@
+name: Deploy intranet to Azure Web App
+
+on:
+  push:
+    branches:
+      - main    # ajusta si usas otra rama por defecto
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      AZURE_WEBAPP_NAME: bodegas     # 👈 nombre EXACTO del App Service
+      NODE_VERSION: '20.x'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # 1) Build del frontend (intranet-web)
+      - name: Install frontend deps
+        working-directory: ./intranet-web
+        run: npm install
+
+      - name: Build frontend
+        working-directory: ./intranet-web
+        run: npm run build
+
+      # 2) Copiar build al backend (bodegas-service/public)
+      - name: Copy frontend build to backend public folder
+        run: |
+          rm -rf bodegas-service/public
+          mkdir -p bodegas-service/public
+          cp -R intranet-web/dist/* bodegas-service/public/
+
+      # 3) Build del backend (bodegas-service)
+      - name: Install backend deps
+        working-directory: ./bodegas-service
+        run: npm install
+
+      - name: Build backend
+        working-directory: ./bodegas-service
+        run: npm run build
+
+      # 4) Deploy to Azure Web App
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          package: ./bodegas-service
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
