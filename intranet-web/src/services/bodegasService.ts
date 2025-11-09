@@ -10,6 +10,10 @@ export type UpdateBodegaPayload = {
   metrosCuadrados?: number
   piso?: number
   estado?: BodegaStatus
+  tarifaUf?: number
+  fechaContratacion?: string
+  fechaTermino?: string
+  observaciones?: string
 }
 
 function assertBodegaList(data: unknown): Bodega[] {

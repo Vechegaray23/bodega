@@ -7,6 +7,10 @@ export interface Bodega {
   metrosCuadrados: number
   piso: number
   estado: BodegaStatus
+  tarifaUf: number
+  fechaContratacion: string
+  fechaTermino: string
+  observaciones: string
 }
 
 type BodegaStatusConfig = {

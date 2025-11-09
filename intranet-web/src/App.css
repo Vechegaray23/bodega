@@ -808,7 +808,8 @@ body {
 }
 
 .storage-modal__field input,
-.storage-modal__field select {
+.storage-modal__field select,
+.storage-modal__field textarea {
   border-radius: 12px;
   border: 1px solid rgba(148, 163, 184, 0.4);
   padding: 0.65rem 0.75rem;
@@ -819,10 +820,20 @@ body {
 }
 
 .storage-modal__field input:focus,
-.storage-modal__field select:focus {
+.storage-modal__field select:focus,
+.storage-modal__field textarea:focus {
   outline: none;
   border-color: rgba(59, 130, 246, 0.6);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.storage-modal__field textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.storage-modal__field--full {
+  grid-column: 1 / -1;
 }
 
 .storage-modal__details {
@@ -848,6 +859,12 @@ body {
 .storage-modal__details dd {
   margin: 0.2rem 0 0;
   font-weight: 600;
+}
+
+.storage-modal__details-note {
+  font-weight: 500;
+  color: #1f2937;
+  white-space: pre-line;
 }
 
 .storage-modal__feedback {

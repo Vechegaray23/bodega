@@ -7,7 +7,28 @@ const router = Router();
 
 const ESTADOS_VALIDOS: EstadoBodega[] = ['DISPONIBLE', 'RESERVADA', 'OCUPADA', 'POR_VENCER'];
 
-type UpdatePayload = Partial<Pick<Bodega, 'nombre' | 'metrosCuadrados' | 'piso' | 'estado'>>;
+type UpdatePayload = Partial<
+  Pick<
+    Bodega,
+    | 'nombre'
+    | 'metrosCuadrados'
+    | 'piso'
+    | 'estado'
+    | 'tarifaUf'
+    | 'fechaContratacion'
+    | 'fechaTermino'
+    | 'observaciones'
+  >
+>;
+
+function isValidDate(value: unknown): value is string {
+  if (typeof value !== 'string') {
+    return false;
+  }
+
+  const time = Date.parse(value);
+  return !Number.isNaN(time);
+}
 
 function findBodegaIndex(id: string): number {
   return bodegasMock.findIndex((item) => item.id === id || item.codigo === id);
@@ -53,6 +74,38 @@ function sanitizeUpdates(payload: unknown): UpdatePayload {
     sanitized.estado = estado as EstadoBodega;
   }
 
+  if ('tarifaUf' in updates) {
+    const tarifaUf = updates.tarifaUf;
+    if (typeof tarifaUf !== 'number' || Number.isNaN(tarifaUf) || tarifaUf <= 0) {
+      throw new Error('La tarifa en UF debe ser un número mayor a cero.');
+    }
+    sanitized.tarifaUf = Number(tarifaUf);
+  }
+
+  if ('fechaContratacion' in updates) {
+    const fechaContratacion = updates.fechaContratacion;
+    if (!isValidDate(fechaContratacion)) {
+      throw new Error('La fecha de contratación no es válida.');
+    }
+    sanitized.fechaContratacion = fechaContratacion;
+  }
+
+  if ('fechaTermino' in updates) {
+    const fechaTermino = updates.fechaTermino;
+    if (!isValidDate(fechaTermino)) {
+      throw new Error('La fecha de término no es válida.');
+    }
+    sanitized.fechaTermino = fechaTermino;
+  }
+
+  if ('observaciones' in updates) {
+    const observaciones = updates.observaciones;
+    if (typeof observaciones !== 'string') {
+      throw new Error('Las observaciones deben ser texto.');
+    }
+    sanitized.observaciones = observaciones.trim();
+  }
+
   return sanitized;
 }
 
@@ -87,6 +140,18 @@ router.patch('/:id', (req, res) => {
     }
 
     const updatedBodega: Bodega = { ...bodegasMock[index], ...updates };
+
+    const fechaContratacion = Date.parse(updatedBodega.fechaContratacion);
+    const fechaTermino = Date.parse(updatedBodega.fechaTermino);
+
+    if (!Number.isNaN(fechaContratacion) && !Number.isNaN(fechaTermino)) {
+      if (fechaTermino < fechaContratacion) {
+        return res
+          .status(400)
+          .json({ message: 'La fecha de término no puede ser anterior a la fecha de contratación.' });
+      }
+    }
+
     bodegasMock[index] = updatedBodega;
 
     return res.json(updatedBodega);

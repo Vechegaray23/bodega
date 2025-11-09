@@ -27,6 +27,10 @@ export type StorageUnit = {
   status: BodegaStatus
   size: string
   span: string
+  tarifaUf: number
+  fechaContratacion: string
+  fechaTermino: string
+  observaciones: string
 }
 
 function resolveIdentifier(bodega: Bodega): string {
@@ -49,6 +53,10 @@ export function toStorageUnit(bodega: Bodega): StorageUnit {
     status: bodega.estado,
     size: `${bodega.metrosCuadrados} m²`,
     span: resolveSpan(identifier),
+    tarifaUf: bodega.tarifaUf,
+    fechaContratacion: bodega.fechaContratacion,
+    fechaTermino: bodega.fechaTermino,
+    observaciones: bodega.observaciones,
   }
 }
 

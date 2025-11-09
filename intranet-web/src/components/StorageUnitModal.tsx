@@ -17,6 +17,10 @@ type FormState = {
   metrosCuadrados: string
   piso: string
   estado: UpdateBodegaPayload['estado']
+  tarifaUf: string
+  fechaContratacion: string
+  fechaTermino: string
+  observaciones: string
 }
 
 const STATUS_OPTIONS = getAllBodegaStatuses()
@@ -34,6 +38,10 @@ function StorageUnitModal({
     metrosCuadrados: unit.metrosCuadrados.toString(),
     piso: unit.piso.toString(),
     estado: unit.status,
+    tarifaUf: unit.tarifaUf.toString(),
+    fechaContratacion: unit.fechaContratacion,
+    fechaTermino: unit.fechaTermino,
+    observaciones: unit.observaciones,
   })
   const [formError, setFormError] = useState<string | null>(null)
 
@@ -43,6 +51,10 @@ function StorageUnitModal({
       metrosCuadrados: unit.metrosCuadrados.toString(),
       piso: unit.piso.toString(),
       estado: unit.status,
+      tarifaUf: unit.tarifaUf.toString(),
+      fechaContratacion: unit.fechaContratacion,
+      fechaTermino: unit.fechaTermino,
+      observaciones: unit.observaciones,
     })
     setFormError(null)
   }, [unit])
@@ -56,7 +68,37 @@ function StorageUnitModal({
     return unit.size
   }, [formState.metrosCuadrados, unit.size])
 
-  const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const formattedTarifaUf = useMemo(() => {
+    const tarifa = Number(formState.tarifaUf)
+    if (Number.isFinite(tarifa) && tarifa > 0) {
+      return `${tarifa.toLocaleString('es-CL', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })} UF`
+    }
+
+    return `${unit.tarifaUf.toLocaleString('es-CL', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })} UF`
+  }, [formState.tarifaUf, unit.tarifaUf])
+
+  const formatDateForDisplay = (value: string): string => {
+    if (!value) {
+      return '—'
+    }
+
+    const timestamp = Date.parse(value)
+    if (Number.isNaN(timestamp)) {
+      return value
+    }
+
+    return new Date(timestamp).toLocaleDateString('es-CL')
+  }
+
+  const handleChange = (
+    event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = event.target
 
     setFormState((prev) => ({
@@ -71,6 +113,10 @@ function StorageUnitModal({
     const nombre = formState.nombre.trim()
     const metrosCuadrados = Number(formState.metrosCuadrados)
     const piso = Number(formState.piso)
+    const tarifaUf = Number(formState.tarifaUf)
+    const fechaContratacion = formState.fechaContratacion
+    const fechaTermino = formState.fechaTermino
+    const observaciones = formState.observaciones.trim()
 
     if (!nombre) {
       setFormError('El nombre es obligatorio.')
@@ -87,6 +133,26 @@ function StorageUnitModal({
       return
     }
 
+    if (!Number.isFinite(tarifaUf) || tarifaUf <= 0) {
+      setFormError('Ingresá una tarifa en UF válida.')
+      return
+    }
+
+    if (!fechaContratacion || Number.isNaN(Date.parse(fechaContratacion))) {
+      setFormError('Seleccioná una fecha de contratación válida.')
+      return
+    }
+
+    if (!fechaTermino || Number.isNaN(Date.parse(fechaTermino))) {
+      setFormError('Seleccioná una fecha de término válida.')
+      return
+    }
+
+    if (Date.parse(fechaTermino) < Date.parse(fechaContratacion)) {
+      setFormError('La fecha de término no puede ser anterior a la fecha de contratación.')
+      return
+    }
+
     setFormError(null)
 
     const payload: UpdateBodegaPayload = {
@@ -94,6 +160,10 @@ function StorageUnitModal({
       metrosCuadrados,
       piso,
       estado: formState.estado,
+      tarifaUf,
+      fechaContratacion,
+      fechaTermino,
+      observaciones,
     }
 
     try {
@@ -165,6 +235,19 @@ function StorageUnitModal({
             </label>
 
             <label className="storage-modal__field">
+              <span>Tarifa en UF</span>
+              <input
+                type="number"
+                name="tarifaUf"
+                min="0"
+                step="0.01"
+                value={formState.tarifaUf}
+                onChange={handleChange}
+                required
+              />
+            </label>
+
+            <label className="storage-modal__field">
               <span>Estado</span>
               <select
                 name="estado"
@@ -177,6 +260,39 @@ function StorageUnitModal({
                   </option>
                 ))}
               </select>
+            </label>
+
+            <label className="storage-modal__field">
+              <span>Fecha de contratación</span>
+              <input
+                type="date"
+                name="fechaContratacion"
+                value={formState.fechaContratacion}
+                onChange={handleChange}
+                required
+              />
+            </label>
+
+            <label className="storage-modal__field">
+              <span>Fecha término contrato</span>
+              <input
+                type="date"
+                name="fechaTermino"
+                value={formState.fechaTermino}
+                onChange={handleChange}
+                required
+              />
+            </label>
+
+            <label className="storage-modal__field storage-modal__field--full">
+              <span>Observaciones</span>
+              <textarea
+                name="observaciones"
+                value={formState.observaciones}
+                onChange={handleChange}
+                placeholder="Añadí notas relevantes sobre esta bodega"
+                rows={4}
+              />
             </label>
           </div>
 
@@ -193,6 +309,24 @@ function StorageUnitModal({
               <div>
                 <dt>Último estado reportado</dt>
                 <dd>{getBodegaStatusLabel(formState.estado ?? unit.status)}</dd>
+              </div>
+              <div>
+                <dt>Tarifa mensual</dt>
+                <dd>{formattedTarifaUf}</dd>
+              </div>
+              <div>
+                <dt>Contrato vigente desde</dt>
+                <dd>{formatDateForDisplay(formState.fechaContratacion || unit.fechaContratacion)}</dd>
+              </div>
+              <div>
+                <dt>Contrato vigente hasta</dt>
+                <dd>{formatDateForDisplay(formState.fechaTermino || unit.fechaTermino)}</dd>
+              </div>
+              <div className="storage-modal__details-notes">
+                <dt>Observaciones</dt>
+                <dd className="storage-modal__details-note">
+                  {formState.observaciones.trim() || '—'}
+                </dd>
               </div>
             </dl>
           </section>

@@ -9,4 +9,8 @@ export interface Bodega {
   metrosCuadrados: number; // superficie
   piso: number;            // piso/planta
   estado: EstadoBodega;    // estado operativo
+  tarifaUf: number;        // tarifa mensual en UF
+  fechaContratacion: string; // fecha de inicio del contrato (ISO)
+  fechaTermino: string;    // fecha de término del contrato (ISO)
+  observaciones: string;   // notas operativas
 }
