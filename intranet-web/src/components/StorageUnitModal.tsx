@@ -3,6 +3,7 @@ import { getAllBodegaStatuses, getBodegaStatusLabel } from '../domain/bodegas'
 import type { StorageUnit } from '../domain/storageUnits'
 import type { UpdateBodegaPayload } from '../services/bodegasService'
 import { createStorageContractDocument } from '../domain/contracts'
+import { createPdfBlobFromText } from '../lib/pdf'
 
 type StorageUnitModalProps = {
   unit: StorageUnit
@@ -129,7 +130,7 @@ function StorageUnitModal({
   }
 
   const contractPreview = useMemo(() => {
-    if (formState.estado !== 'RESERVADA') {
+    if (formState.estado !== 'RESERVADA' && formState.estado !== 'OCUPADA') {
       return ''
     }
 
@@ -163,6 +164,10 @@ function StorageUnitModal({
       contratanteTelefono: sanitizeText(formState.contratanteTelefono, unit.contratanteTelefono),
       contratanteEmail: sanitizeText(formState.contratanteEmail, unit.contratanteEmail),
       observaciones: sanitizeText(formState.observaciones, unit.observaciones),
+      estado:
+        formState.estado === 'RESERVADA' || formState.estado === 'OCUPADA'
+          ? formState.estado
+          : undefined,
       generatedAt: new Date(),
     })
   }, [formState, unit])
@@ -295,17 +300,17 @@ function StorageUnitModal({
       return
     }
 
-    const blob = new Blob([contractPreview], { type: 'text/plain;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
+    const pdfBlob = createPdfBlobFromText(contractPreview)
+    const url = URL.createObjectURL(pdfBlob)
     const link = document.createElement('a')
     link.href = url
-    link.download = `Contrato-${unit.codigo || unit.id}.txt`
+    link.download = `Contrato-${unit.codigo || unit.id}.pdf`
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
 
-    setContractFeedback('Contrato descargado correctamente.')
+    setContractFeedback('Contrato PDF descargado correctamente.')
   }
 
   return (
@@ -530,7 +535,7 @@ function StorageUnitModal({
             </dl>
           </section>
 
-          {formState.estado === 'RESERVADA' ? (
+          {formState.estado === 'RESERVADA' || formState.estado === 'OCUPADA' ? (
             <section className="storage-modal__contract">
               <div className="storage-modal__contract-header">
                 <h3>Contrato de reserva</h3>
@@ -554,7 +559,7 @@ function StorageUnitModal({
                   className="button button--primary"
                   onClick={handleDownloadContract}
                 >
-                  Descargar (.txt)
+                  Descargar (.pdf)
                 </button>
               </div>
               {contractFeedback ? (
