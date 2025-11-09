@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from '
 import { getAllBodegaStatuses, getBodegaStatusLabel } from '../domain/bodegas'
 import type { StorageUnit } from '../domain/storageUnits'
 import type { UpdateBodegaPayload } from '../services/bodegasService'
+import { createStorageContractDocument } from '../domain/contracts'
 
 type StorageUnitModalProps = {
   unit: StorageUnit
@@ -55,6 +56,7 @@ function StorageUnitModal({
     observaciones: unit.observaciones,
   })
   const [formError, setFormError] = useState<string | null>(null)
+  const [contractFeedback, setContractFeedback] = useState<string | null>(null)
 
   useEffect(() => {
     setFormState({
@@ -72,7 +74,22 @@ function StorageUnitModal({
       observaciones: unit.observaciones,
     })
     setFormError(null)
+    setContractFeedback(null)
   }, [unit])
+
+  useEffect(() => {
+    if (!contractFeedback) {
+      return undefined
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setContractFeedback(null)
+    }, 4000)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
+  }, [contractFeedback])
 
   const formattedSize = useMemo(() => {
     const metros = Number(formState.metrosCuadrados)
@@ -110,6 +127,45 @@ function StorageUnitModal({
 
     return new Date(timestamp).toLocaleDateString('es-CL')
   }
+
+  const contractPreview = useMemo(() => {
+    if (formState.estado !== 'RESERVADA') {
+      return ''
+    }
+
+    const sanitizeText = (value: string, fallback: string): string => {
+      const trimmed = value.trim()
+      return trimmed || fallback
+    }
+
+    const parseNumber = (value: string, fallback: number): number => {
+      const parsed = Number(value)
+      if (!Number.isFinite(parsed)) {
+        return fallback
+      }
+
+      return parsed
+    }
+
+    const fechaContratacion = formState.fechaContratacion || unit.fechaContratacion
+    const fechaTermino = formState.fechaTermino || unit.fechaTermino
+
+    return createStorageContractDocument({
+      bodegaNombre: sanitizeText(formState.nombre, unit.nombre),
+      bodegaCodigo: unit.codigo || unit.id,
+      metrosCuadrados: parseNumber(formState.metrosCuadrados, unit.metrosCuadrados),
+      piso: parseNumber(formState.piso, unit.piso),
+      tarifaUf: parseNumber(formState.tarifaUf, unit.tarifaUf),
+      fechaContratacion,
+      fechaTermino,
+      contratanteNombre: sanitizeText(formState.contratanteNombre, unit.contratanteNombre),
+      contratanteRut: sanitizeText(formState.contratanteRut, unit.contratanteRut),
+      contratanteTelefono: sanitizeText(formState.contratanteTelefono, unit.contratanteTelefono),
+      contratanteEmail: sanitizeText(formState.contratanteEmail, unit.contratanteEmail),
+      observaciones: sanitizeText(formState.observaciones, unit.observaciones),
+      generatedAt: new Date(),
+    })
+  }, [formState, unit])
 
   const handleChange = (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -214,6 +270,42 @@ function StorageUnitModal({
     } catch {
       // El componente padre se encarga de mostrar el error correspondiente.
     }
+  }
+
+  const handleCopyContract = async () => {
+    if (!contractPreview) {
+      return
+    }
+
+    if (typeof navigator === 'undefined' || !navigator.clipboard) {
+      setContractFeedback('No fue posible copiar automáticamente. Copiá el contrato manualmente.')
+      return
+    }
+
+    try {
+      await navigator.clipboard.writeText(contractPreview)
+      setContractFeedback('Contrato copiado al portapapeles.')
+    } catch {
+      setContractFeedback('No se pudo copiar el contrato. Intentá nuevamente.')
+    }
+  }
+
+  const handleDownloadContract = () => {
+    if (!contractPreview) {
+      return
+    }
+
+    const blob = new Blob([contractPreview], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `Contrato-${unit.codigo || unit.id}.txt`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+
+    setContractFeedback('Contrato descargado correctamente.')
   }
 
   return (
@@ -437,6 +529,41 @@ function StorageUnitModal({
               </div>
             </dl>
           </section>
+
+          {formState.estado === 'RESERVADA' ? (
+            <section className="storage-modal__contract">
+              <div className="storage-modal__contract-header">
+                <h3>Contrato de reserva</h3>
+                <p>Revisá y compartí la minuta generada automáticamente.</p>
+              </div>
+              <textarea
+                className="storage-modal__contract-preview"
+                readOnly
+                value={contractPreview}
+              />
+              <div className="storage-modal__contract-actions">
+                <button
+                  type="button"
+                  className="button button--ghost"
+                  onClick={handleCopyContract}
+                >
+                  Copiar contrato
+                </button>
+                <button
+                  type="button"
+                  className="button button--primary"
+                  onClick={handleDownloadContract}
+                >
+                  Descargar (.txt)
+                </button>
+              </div>
+              {contractFeedback ? (
+                <p className="storage-modal__feedback storage-modal__feedback--info">
+                  {contractFeedback}
+                </p>
+              ) : null}
+            </section>
+          ) : null}
 
           {formError ? <p className="storage-modal__feedback storage-modal__feedback--error">{formError}</p> : null}
           {error ? (
