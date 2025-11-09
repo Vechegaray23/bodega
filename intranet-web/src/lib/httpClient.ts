@@ -80,3 +80,18 @@ export async function httpPost<T>(path: string, body: unknown, options: RequestI
     body: JSON.stringify(body),
   })
 }
+
+export async function httpPatch<T>(
+  path: string,
+  body: unknown,
+  options: RequestInit = {}
+): Promise<T> {
+  const headers = { 'Content-Type': 'application/json', ...(options.headers ?? {}) }
+
+  return httpRequest<T>(path, {
+    ...options,
+    method: 'PATCH',
+    headers,
+    body: JSON.stringify(body),
+  })
+}

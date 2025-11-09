@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
-import { getBodegas } from '../services/bodegasService'
+import { useEffect, useMemo, useState, type KeyboardEvent } from 'react'
+import StorageUnitModal from './StorageUnitModal'
+import { getBodegas, updateBodega, type UpdateBodegaPayload } from '../services/bodegasService'
 import {
   getWarehouseMetadata,
   getWarehouseNotes,
@@ -11,6 +12,7 @@ import {
   getBodegaStatusLabel,
 } from '../domain/bodegas'
 import type { StorageUnit } from '../domain/storageUnits'
+import { HttpError } from '../lib/httpClient'
 
 function StorageMap() {
   const [storageUnits, setStorageUnits] = useState<StorageUnit[]>([])
@@ -18,7 +20,25 @@ function StorageMap() {
   const [operationalNotes, setOperationalNotes] = useState<string[]>([])
   const [isLoadingBodegas, setIsLoadingBodegas] = useState(true)
   const [bodegasError, setBodegasError] = useState<string | null>(null)
+  const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null)
+  const [isSavingChanges, setIsSavingChanges] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [saveSuccessMessage, setSaveSuccessMessage] = useState<string | null>(null)
   const statusLegend = getAllBodegaStatuses()
+
+  const selectedUnit = useMemo(() => {
+    if (!selectedUnitId) {
+      return null
+    }
+
+    return storageUnits.find((unit) => unit.id === selectedUnitId) ?? null
+  }, [selectedUnitId, storageUnits])
+
+  useEffect(() => {
+    if (selectedUnitId && !selectedUnit) {
+      setSelectedUnitId(null)
+    }
+  }, [selectedUnit, selectedUnitId])
 
   useEffect(() => {
     let isMounted = true
@@ -59,6 +79,71 @@ function StorageMap() {
       isMounted = false
     }
   }, [])
+
+  const handleStorageUnitClick = (unitId: string) => {
+    setSelectedUnitId(unitId)
+    setSaveError(null)
+    setSaveSuccessMessage(null)
+  }
+
+  const handleStorageUnitKeyDown = (
+    event: KeyboardEvent<HTMLDivElement>,
+    unitId: string
+  ) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      handleStorageUnitClick(unitId)
+    }
+  }
+
+  const handleCloseModal = () => {
+    setSelectedUnitId(null)
+    setSaveError(null)
+    setSaveSuccessMessage(null)
+  }
+
+  const handleSaveChanges = async (updates: UpdateBodegaPayload) => {
+    if (!selectedUnitId) {
+      return
+    }
+
+    setIsSavingChanges(true)
+    setSaveError(null)
+    setSaveSuccessMessage(null)
+
+    try {
+      const updatedUnit = await updateBodega(selectedUnitId, updates)
+
+      setStorageUnits((prevUnits) =>
+        prevUnits.map((unit) => (unit.id === updatedUnit.id ? updatedUnit : unit))
+      )
+      setSelectedUnitId(updatedUnit.id)
+      setSaveSuccessMessage('Bodega actualizada correctamente.')
+    } catch (error) {
+      console.error('No fue posible actualizar la bodega', error)
+
+      let message = 'No fue posible actualizar la bodega.'
+
+      if (error instanceof HttpError) {
+        const body = error.body
+        if (body && typeof body === 'object' && 'message' in body) {
+          const bodyMessage = (body as { message?: unknown }).message
+          if (typeof bodyMessage === 'string' && bodyMessage.trim()) {
+            message = bodyMessage
+          }
+        } else if (error.message) {
+          message = error.message
+        }
+      } else if (error instanceof Error && error.message) {
+        message = error.message
+      }
+
+      setSaveError(message)
+      throw error
+    } finally {
+      setIsSavingChanges(false)
+    }
+  }
 
   return (
     <div className="warehouse-page">
@@ -101,6 +186,11 @@ function StorageMap() {
               storageUnits.map((unit) => (
                 <div
                   key={unit.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Bodega ${unit.nombre}. Estado: ${getBodegaStatusLabel(unit.status)}.`}
+                  onClick={() => handleStorageUnitClick(unit.id)}
+                  onKeyDown={(event) => handleStorageUnitKeyDown(event, unit.id)}
                   className={`storage-unit ${unit.span} storage-unit--${getBodegaStatusColor(unit.status)}`}
                 >
                   <span className="storage-unit__id">{unit.id}</span>
@@ -132,6 +222,17 @@ function StorageMap() {
           </section>
         </aside>
       </div>
+
+      {selectedUnit ? (
+        <StorageUnitModal
+          unit={selectedUnit}
+          onClose={handleCloseModal}
+          onSave={handleSaveChanges}
+          isSaving={isSavingChanges}
+          error={saveError}
+          successMessage={saveSuccessMessage}
+        />
+      ) : null}
     </div>
   )
 }
