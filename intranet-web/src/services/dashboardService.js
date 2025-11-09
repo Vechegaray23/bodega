@@ -7,65 +7,60 @@ const menuItemsMock = [
 
 const quickLinksMock = [
   {
-    title: 'Solicitar vacaciones',
-    description: 'Administra tus días libres y supervisa el estado de tus solicitudes.',
-    action: 'Ir a RRHH',
+    title: 'Lorem ipsum dolor',
+    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+    action: 'Lorem ipsum',
   },
   {
-    title: 'Mesa de ayuda',
-    description: 'Genera tickets y haz seguimiento de tus incidencias técnicas.',
-    action: 'Abrir ticket',
+    title: 'Consectetur adipiscing elit',
+    description: 'Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+    action: 'Dolor sit',
   },
   {
-    title: 'Directorio',
-    description: 'Encuentra información de contacto de todo el equipo.',
-    action: 'Ver personas',
+    title: 'Ut enim ad minim veniam',
+    description: 'Quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+    action: 'Amet lorem',
   },
 ]
 
 const metricsMock = [
-  { label: 'Satisfacción del equipo', value: '92%', trend: '+4.5% vs. mes anterior' },
-  { label: 'Proyectos activos', value: '18', trend: '6 entregas esta semana' },
-  { label: 'Capacitaciones', value: '5', trend: 'Nuevos cursos disponibles' },
+  { label: 'Lorem ipsum dolor', value: '92%', trend: 'Lorem ipsum dolor sit amet' },
+  { label: 'Consectetur adipiscing', value: '18', trend: 'Sed do eiusmod tempor' },
+  { label: 'Elit sed do', value: '5', trend: 'Eiusmod tempor incididunt' },
 ]
 
 const newsMock = [
   {
-    tag: 'People',
-    title: 'Reconocimiento a equipos destacados del trimestre',
-    description:
-      'Conocé a los equipos que alcanzaron los mejores resultados y descubre sus estrategias para compartirlas con tu squad.',
+    tag: 'Lorem',
+    title: 'Lorem ipsum dolor sit amet',
+    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.',
   },
   {
-    tag: 'Tech',
-    title: 'Lanzamos la nueva app móvil de clientes',
-    description:
-      'La aplicación incorpora funcionalidades de autoservicio y monitoreo en tiempo real. Explorá el roadmap y los próximos hitos.',
+    tag: 'Ipsum',
+    title: 'Ut enim ad minim veniam',
+    description: 'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip.',
   },
   {
-    tag: 'Cultura',
-    title: 'Semana de impacto social',
-    description:
-      'Sumate a las actividades de voluntariado junto a organizaciones aliadas. Hay opciones presenciales y virtuales.',
+    tag: 'Dolor',
+    title: 'Duis aute irure dolor in reprehenderit',
+    description: 'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
   },
 ]
 
 const eventsMock = [
-  { date: '12 Jun', title: 'Demo trimestral', location: 'Auditorio principal / Streaming Teams' },
-  { date: '19 Jun', title: 'Taller de liderazgo', location: 'Sala Innovación' },
-  { date: '27 Jun', title: 'After Office', location: 'Terraza corporativa' },
+  { date: '12 Jun', title: 'Lorem ipsum dolor sit', location: 'Lorem ipsum dolor' },
+  { date: '19 Jun', title: 'Amet consectetur', location: 'Adipiscing elit' },
+  { date: '27 Jun', title: 'Sed do eiusmod', location: 'Tempor incididunt' },
 ]
 
 const announcementsMock = [
   {
-    title: 'Nueva plataforma de bienestar',
-    description:
-      'Accede a sesiones de mindfulness, asesoramiento nutricional y descuentos en gimnasios aliados. Inscríbete antes del 30 de junio.',
+    title: 'Lorem ipsum dolor sit amet',
+    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore.',
   },
   {
-    title: 'Actualización de políticas de trabajo híbrido',
-    description:
-      'Revisá la guía completa en la sección de Recursos Humanos. Entrará en vigencia el próximo mes.',
+    title: 'Ut enim ad minim veniam',
+    description: 'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
   },
 ]
 
