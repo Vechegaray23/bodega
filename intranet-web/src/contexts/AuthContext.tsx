@@ -1,4 +1,11 @@
-import { createContext, type ReactNode, useContext, useMemo, useState } from 'react'
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from 'react'
 
 type User = {
   id: string
@@ -8,7 +15,7 @@ type User = {
 
 type AuthContextValue = {
   user: User | null
-  loginMock: () => void
+  login: (username: string, password: string) => boolean
   logout: () => void
 }
 
@@ -17,19 +24,27 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
 
-  function loginMock() {
-    setUser({
-      id: '1',
-      name: 'Usuario Demo',
-      roles: ['OPERACIONES'],
-    })
-  }
+  const login = useCallback((username: string, password: string) => {
+    if (username === 'admin' && password === 'admin1') {
+      setUser({
+        id: '1',
+        name: 'Administrador',
+        roles: ['INTRANET'],
+      })
+      return true
+    }
 
-  function logout() {
+    return false
+  }, [])
+
+  const logout = useCallback(() => {
     setUser(null)
-  }
+  }, [])
 
-  const value = useMemo<AuthContextValue>(() => ({ user, loginMock, logout }), [user])
+  const value = useMemo<AuthContextValue>(
+    () => ({ user, login, logout }),
+    [login, logout, user],
+  )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

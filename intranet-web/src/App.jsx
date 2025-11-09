@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 import StorageMap from './components/StorageMap'
+import LoginLanding from './components/LoginLanding'
 import {
   getDashboardAnnouncements,
   getDashboardEvents,
@@ -128,7 +129,7 @@ function Dashboard() {
 function App() {
   const [menuItems, setMenuItems] = useState([])
   const [activePage, setActivePage] = useState('dashboard')
-  const { user, loginMock, logout } = useAuth()
+  const { user, login, logout } = useAuth()
 
   useEffect(() => {
     getMenuItems().then(setMenuItems)
@@ -138,6 +139,18 @@ function App() {
     if (!user?.roles?.length) return ''
     return user.roles.join(', ')
   }, [user])
+
+  useEffect(() => {
+    if (!user) {
+      setActivePage('dashboard')
+    }
+  }, [user])
+
+  const handleLogin = (username, password) => login(username, password)
+
+  if (!user) {
+    return <LoginLanding onLogin={handleLogin} />
+  }
 
   return (
     <div className="app-shell">
@@ -160,21 +173,15 @@ function App() {
           ))}
         </ul>
         <div className="main-nav__auth">
-          {user ? (
-            <div className="main-nav__user">
-              <div className="main-nav__user-info">
-                <span className="main-nav__user-name">{user.name}</span>
-                {userRolesLabel ? <span className="main-nav__user-roles">{userRolesLabel}</span> : null}
-              </div>
-              <button type="button" className="button button--ghost" onClick={logout}>
-                Lorem ipsum
-              </button>
+          <div className="main-nav__user">
+            <div className="main-nav__user-info">
+              <span className="main-nav__user-name">{user.name}</span>
+              {userRolesLabel ? <span className="main-nav__user-roles">{userRolesLabel}</span> : null}
             </div>
-          ) : (
-            <button type="button" className="button button--primary" onClick={loginMock}>
-              Dolor sit
+            <button type="button" className="button button--ghost" onClick={logout}>
+              Cerrar sesión
             </button>
-          )}
+          </div>
         </div>
       </nav>
 
