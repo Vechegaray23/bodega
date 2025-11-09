@@ -30,14 +30,14 @@ function Dashboard() {
     <>
       <header className="hero">
         <div className="hero__content">
-          <p className="hero__badge">Intranet Corporativa</p>
-          <h1>Todo lo que necesitás para estar al día en un mismo lugar</h1>
+          <p className="hero__badge">Lorem ipsum dolor</p>
+          <h1>Lorem ipsum dolor sit amet, consectetur adipiscing elit</h1>
           <p className="hero__subtitle">
-            Accedé rápidamente a recursos, noticias y herramientas clave. Seguimos construyendo un equipo conectado y colaborativo.
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Integer sed mauris sed orci feugiat tempus.
           </p>
           <div className="hero__actions">
-            <button className="button button--primary">Ver OKRs</button>
-            <button className="button button--ghost">Último reporte</button>
+            <button className="button button--primary">Lorem ipsum</button>
+            <button className="button button--ghost">Dolor sit</button>
           </div>
         </div>
         <div className="hero__cards">
@@ -54,9 +54,9 @@ function Dashboard() {
       <main className="main-grid">
         <section className="panel panel--wide">
           <div className="panel__header">
-            <h2>Últimas novedades</h2>
+            <h2>Lorem ipsum dolor</h2>
             <a href="#" className="panel__link">
-              Ver todas
+              Lorem ipsum
             </a>
           </div>
           <div className="news-grid">
@@ -72,9 +72,9 @@ function Dashboard() {
 
         <section className="panel">
           <div className="panel__header">
-            <h2>Eventos próximos</h2>
+            <h2>Lorem ipsum dolor</h2>
             <a href="#" className="panel__link">
-              Calendario completo
+              Lorem ipsum
             </a>
           </div>
           <ul className="event-list">
@@ -92,9 +92,9 @@ function Dashboard() {
 
         <section className="panel">
           <div className="panel__header">
-            <h2>Anuncios</h2>
+            <h2>Lorem ipsum dolor</h2>
             <a href="#" className="panel__link">
-              Centro de comunicaciones
+              Lorem ipsum
             </a>
           </div>
           <div className="announcement-list">
@@ -102,7 +102,7 @@ function Dashboard() {
               <article key={item.title} className="announcement-card">
                 <h3>{item.title}</h3>
                 <p>{item.description}</p>
-                <button className="button button--inline">Más información</button>
+                <button className="button button--inline">Lorem ipsum</button>
               </article>
             ))}
           </div>
@@ -110,7 +110,7 @@ function Dashboard() {
       </main>
 
       <aside className="quick-links">
-        <h2>Accesos directos</h2>
+        <h2>Lorem ipsum dolor</h2>
         <div className="quick-links__grid">
           {quickLinks.map((link) => (
             <article key={link.title} className="quick-link-card">
@@ -144,7 +144,7 @@ function App() {
       <nav className="main-nav">
         <div className="main-nav__brand">
           <span className="main-nav__brand-mark" />
-          <span>Intranet Bodega</span>
+          <span>Lorem ipsum</span>
         </div>
         <ul className="main-nav__items">
           {menuItems.map((item) => (
@@ -167,12 +167,12 @@ function App() {
                 {userRolesLabel ? <span className="main-nav__user-roles">{userRolesLabel}</span> : null}
               </div>
               <button type="button" className="button button--ghost" onClick={logout}>
-                Logout
+                Lorem ipsum
               </button>
             </div>
           ) : (
             <button type="button" className="button button--primary" onClick={loginMock}>
-              Login demo
+              Dolor sit
             </button>
           )}
         </div>
