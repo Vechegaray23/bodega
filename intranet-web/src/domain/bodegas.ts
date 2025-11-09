@@ -4,6 +4,10 @@ export interface Bodega {
   id: string
   codigo: string
   nombre: string
+  contratanteNombre: string
+  contratanteRut: string
+  contratanteTelefono: string
+  contratanteEmail: string
   metrosCuadrados: number
   piso: number
   estado: BodegaStatus

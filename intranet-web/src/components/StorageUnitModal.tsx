@@ -14,6 +14,10 @@ type StorageUnitModalProps = {
 
 type FormState = {
   nombre: string
+  contratanteNombre: string
+  contratanteRut: string
+  contratanteTelefono: string
+  contratanteEmail: string
   metrosCuadrados: string
   piso: string
   estado: UpdateBodegaPayload['estado']
@@ -24,6 +28,9 @@ type FormState = {
 }
 
 const STATUS_OPTIONS = getAllBodegaStatuses()
+const RUT_REGEX = /^\d{1,2}\.?\d{3}\.?\d{3}-[0-9kK]$/
+const PHONE_REGEX = /^\+?[0-9\s()-]{6,20}$/
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 function StorageUnitModal({
   unit,
@@ -35,6 +42,10 @@ function StorageUnitModal({
 }: StorageUnitModalProps) {
   const [formState, setFormState] = useState<FormState>({
     nombre: unit.nombre,
+    contratanteNombre: unit.contratanteNombre,
+    contratanteRut: unit.contratanteRut,
+    contratanteTelefono: unit.contratanteTelefono,
+    contratanteEmail: unit.contratanteEmail,
     metrosCuadrados: unit.metrosCuadrados.toString(),
     piso: unit.piso.toString(),
     estado: unit.status,
@@ -48,6 +59,10 @@ function StorageUnitModal({
   useEffect(() => {
     setFormState({
       nombre: unit.nombre,
+      contratanteNombre: unit.contratanteNombre,
+      contratanteRut: unit.contratanteRut,
+      contratanteTelefono: unit.contratanteTelefono,
+      contratanteEmail: unit.contratanteEmail,
       metrosCuadrados: unit.metrosCuadrados.toString(),
       piso: unit.piso.toString(),
       estado: unit.status,
@@ -111,6 +126,10 @@ function StorageUnitModal({
     event.preventDefault()
 
     const nombre = formState.nombre.trim()
+    const contratanteNombre = formState.contratanteNombre.trim()
+    const contratanteRut = formState.contratanteRut.trim()
+    const contratanteTelefono = formState.contratanteTelefono.trim()
+    const contratanteEmail = formState.contratanteEmail.trim()
     const metrosCuadrados = Number(formState.metrosCuadrados)
     const piso = Number(formState.piso)
     const tarifaUf = Number(formState.tarifaUf)
@@ -120,6 +139,26 @@ function StorageUnitModal({
 
     if (!nombre) {
       setFormError('El nombre es obligatorio.')
+      return
+    }
+
+    if (!contratanteNombre) {
+      setFormError('Ingresá el nombre del contratante.')
+      return
+    }
+
+    if (!RUT_REGEX.test(contratanteRut)) {
+      setFormError('Ingresá un RUT de contratante válido.')
+      return
+    }
+
+    if (!PHONE_REGEX.test(contratanteTelefono)) {
+      setFormError('Ingresá un teléfono de contratante válido.')
+      return
+    }
+
+    if (!EMAIL_REGEX.test(contratanteEmail)) {
+      setFormError('Ingresá un correo electrónico de contratante válido.')
       return
     }
 
@@ -157,6 +196,10 @@ function StorageUnitModal({
 
     const payload: UpdateBodegaPayload = {
       nombre,
+      contratanteNombre,
+      contratanteRut,
+      contratanteTelefono,
+      contratanteEmail,
       metrosCuadrados,
       piso,
       estado: formState.estado,
@@ -207,6 +250,54 @@ function StorageUnitModal({
                 value={formState.nombre}
                 onChange={handleChange}
                 placeholder="Ingresá un nombre descriptivo"
+                required
+              />
+            </label>
+
+            <label className="storage-modal__field">
+              <span>Nombre contratante</span>
+              <input
+                type="text"
+                name="contratanteNombre"
+                value={formState.contratanteNombre}
+                onChange={handleChange}
+                placeholder="Ingresá el responsable del contrato"
+                required
+              />
+            </label>
+
+            <label className="storage-modal__field">
+              <span>RUT contratante</span>
+              <input
+                type="text"
+                name="contratanteRut"
+                value={formState.contratanteRut}
+                onChange={handleChange}
+                placeholder="12.345.678-9"
+                required
+              />
+            </label>
+
+            <label className="storage-modal__field">
+              <span>Teléfono contratante</span>
+              <input
+                type="tel"
+                name="contratanteTelefono"
+                value={formState.contratanteTelefono}
+                onChange={handleChange}
+                placeholder="+56 9 1234 5678"
+                required
+              />
+            </label>
+
+            <label className="storage-modal__field">
+              <span>Correo contratante</span>
+              <input
+                type="email"
+                name="contratanteEmail"
+                value={formState.contratanteEmail}
+                onChange={handleChange}
+                placeholder="correo@empresa.cl"
                 required
               />
             </label>
@@ -313,6 +404,22 @@ function StorageUnitModal({
               <div>
                 <dt>Tarifa mensual</dt>
                 <dd>{formattedTarifaUf}</dd>
+              </div>
+              <div>
+                <dt>Nombre contratante</dt>
+                <dd>{formState.contratanteNombre.trim() || '—'}</dd>
+              </div>
+              <div>
+                <dt>RUT contratante</dt>
+                <dd>{formState.contratanteRut.trim() || '—'}</dd>
+              </div>
+              <div>
+                <dt>Teléfono contratante</dt>
+                <dd>{formState.contratanteTelefono.trim() || '—'}</dd>
+              </div>
+              <div>
+                <dt>Correo contratante</dt>
+                <dd>{formState.contratanteEmail.trim() || '—'}</dd>
               </div>
               <div>
                 <dt>Contrato vigente desde</dt>

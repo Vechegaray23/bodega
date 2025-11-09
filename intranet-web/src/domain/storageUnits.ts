@@ -22,6 +22,10 @@ export type StorageUnit = {
   id: string
   codigo: string
   nombre: string
+  contratanteNombre: string
+  contratanteRut: string
+  contratanteTelefono: string
+  contratanteEmail: string
   metrosCuadrados: number
   piso: number
   status: BodegaStatus
@@ -48,6 +52,10 @@ export function toStorageUnit(bodega: Bodega): StorageUnit {
     id: identifier,
     codigo: bodega.codigo,
     nombre: bodega.nombre,
+    contratanteNombre: bodega.contratanteNombre,
+    contratanteRut: bodega.contratanteRut,
+    contratanteTelefono: bodega.contratanteTelefono,
+    contratanteEmail: bodega.contratanteEmail,
     metrosCuadrados: bodega.metrosCuadrados,
     piso: bodega.piso,
     status: bodega.estado,

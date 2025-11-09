@@ -6,6 +6,10 @@ export interface Bodega {
   id: string;              // identificador único interno
   codigo: string;          // código visible, ej: "B-101"
   nombre: string;          // nombre descriptivo
+  contratanteNombre: string; // nombre del responsable del contrato
+  contratanteRut: string;   // RUT del contratante
+  contratanteTelefono: string; // teléfono de contacto del contratante
+  contratanteEmail: string; // correo electrónico del contratante
   metrosCuadrados: number; // superficie
   piso: number;            // piso/planta
   estado: EstadoBodega;    // estado operativo

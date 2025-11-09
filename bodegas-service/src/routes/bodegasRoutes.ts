@@ -6,11 +6,18 @@ import type { Bodega, EstadoBodega } from '../domain/bodegas';
 const router = Router();
 
 const ESTADOS_VALIDOS: EstadoBodega[] = ['DISPONIBLE', 'RESERVADA', 'OCUPADA', 'POR_VENCER'];
+const RUT_REGEX = /^(\d{1,2})\.?(\d{3})\.?(\d{3})-([0-9kK])$/;
+const PHONE_REGEX = /^\+?[0-9\s()-]{6,20}$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 type UpdatePayload = Partial<
   Pick<
     Bodega,
     | 'nombre'
+    | 'contratanteNombre'
+    | 'contratanteRut'
+    | 'contratanteTelefono'
+    | 'contratanteEmail'
     | 'metrosCuadrados'
     | 'piso'
     | 'estado'
@@ -48,6 +55,42 @@ function sanitizeUpdates(payload: unknown): UpdatePayload {
       throw new Error('El nombre debe ser un texto no vacío.');
     }
     sanitized.nombre = nombre.trim();
+  }
+
+  if ('contratanteNombre' in updates) {
+    const contratanteNombre = updates.contratanteNombre;
+    if (typeof contratanteNombre !== 'string' || !contratanteNombre.trim()) {
+      throw new Error('El nombre del contratante debe ser un texto no vacío.');
+    }
+    sanitized.contratanteNombre = contratanteNombre.trim();
+  }
+
+  if ('contratanteRut' in updates) {
+    const contratanteRut = updates.contratanteRut;
+    if (typeof contratanteRut !== 'string' || !RUT_REGEX.test(contratanteRut.trim())) {
+      throw new Error('El RUT del contratante no es válido.');
+    }
+    sanitized.contratanteRut = contratanteRut.trim();
+  }
+
+  if ('contratanteTelefono' in updates) {
+    const contratanteTelefono = updates.contratanteTelefono;
+    if (
+      typeof contratanteTelefono !== 'string' ||
+      !contratanteTelefono.trim() ||
+      !PHONE_REGEX.test(contratanteTelefono.trim())
+    ) {
+      throw new Error('El teléfono del contratante no es válido.');
+    }
+    sanitized.contratanteTelefono = contratanteTelefono.trim();
+  }
+
+  if ('contratanteEmail' in updates) {
+    const contratanteEmail = updates.contratanteEmail;
+    if (typeof contratanteEmail !== 'string' || !EMAIL_REGEX.test(contratanteEmail.trim())) {
+      throw new Error('El correo electrónico del contratante no es válido.');
+    }
+    sanitized.contratanteEmail = contratanteEmail.trim();
   }
 
   if ('metrosCuadrados' in updates) {
