@@ -4,6 +4,7 @@ import { getBodegas, updateBodega, type UpdateBodegaPayload } from '../services/
 import {
   getWarehouseMetadata,
   getWarehouseNotes,
+  markWarehouseUpdated,
   type WarehouseMetadata,
 } from '../services/warehouseInsightsService'
 import {
@@ -67,7 +68,7 @@ function StorageMap() {
     loadBodegas()
     getWarehouseMetadata().then((metadata) => {
       if (isMounted) {
-        setWarehouseMetadata(metadata)
+        setWarehouseMetadata((currentMetadata) => currentMetadata ?? metadata)
       }
     })
     getWarehouseNotes().then((notes) => {
@@ -113,12 +114,14 @@ function StorageMap() {
 
     setOperationalNotes((prevNotes) => [...prevNotes, note])
     setNewNote('')
+    setWarehouseMetadata(markWarehouseUpdated())
   }
 
   const handleRemoveNote = (indexToRemove: number) => {
     setOperationalNotes((prevNotes) =>
       prevNotes.filter((_, noteIndex) => noteIndex !== indexToRemove)
     )
+    setWarehouseMetadata(markWarehouseUpdated())
   }
 
   const handleSaveChanges = async (updates: UpdateBodegaPayload) => {
@@ -138,6 +141,7 @@ function StorageMap() {
       )
       setSelectedUnitId(updatedUnit.id)
       setSaveSuccessMessage('Bodega actualizada correctamente.')
+      setWarehouseMetadata(markWarehouseUpdated())
     } catch (error) {
       console.error('No fue posible actualizar la bodega', error)
 

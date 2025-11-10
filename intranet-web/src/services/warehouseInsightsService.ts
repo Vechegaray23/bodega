@@ -3,11 +3,31 @@ export type WarehouseMetadata = {
   supervisor: string
 }
 
-export async function getWarehouseMetadata(): Promise<WarehouseMetadata> {
+const SUPERVISOR_NAME = 'María Gómez'
+
+let lastUpdatedAt = new Date()
+
+function formatLastUpdate(date: Date): string {
+  return new Intl.DateTimeFormat('es-CL', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(date)
+}
+
+function buildWarehouseMetadata(): WarehouseMetadata {
   return {
-    lastUpdate: 'Hace 5 minutos',
-    supervisor: 'María Gómez',
+    lastUpdate: formatLastUpdate(lastUpdatedAt),
+    supervisor: SUPERVISOR_NAME,
   }
+}
+
+export async function getWarehouseMetadata(): Promise<WarehouseMetadata> {
+  return buildWarehouseMetadata()
+}
+
+export function markWarehouseUpdated(updatedAt: Date = new Date()): WarehouseMetadata {
+  lastUpdatedAt = updatedAt
+  return buildWarehouseMetadata()
 }
 
 export async function getWarehouseNotes(): Promise<string[]> {
