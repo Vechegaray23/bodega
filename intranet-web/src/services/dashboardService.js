@@ -24,9 +24,21 @@ const quickLinksMock = [
 ]
 
 const metricsMock = [
-  { label: 'Lorem ipsum dolor', value: '92%', trend: 'Lorem ipsum dolor sit amet' },
-  { label: 'Consectetur adipiscing', value: '18', trend: 'Sed do eiusmod tempor' },
-  { label: 'Elit sed do', value: '5', trend: 'Eiusmod tempor incididunt' },
+  {
+    label: 'Porcentaje de ocupación',
+    value: '86%',
+    trend: '14 bodegas disponibles actualmente',
+  },
+  {
+    label: 'Contratos próximos a vencer',
+    value: '9',
+    trend: 'Vencen en los próximos 45 días',
+  },
+  {
+    label: 'Ingresos mensuales proyectados',
+    value: '$128.450.000',
+    trend: 'Incluye todas las bodegas ocupadas este mes',
+  },
 ]
 
 const newsMock = [
