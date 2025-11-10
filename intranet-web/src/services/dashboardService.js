@@ -1,8 +1,8 @@
 // import { httpGet } from '../lib/httpClient'
 
 const menuItemsMock = [
-  { id: 'dashboard', label: 'Lorem ipsum' },
-  { id: 'warehouse', label: 'Dolor sit' },
+  { id: 'dashboard', label: 'Inicio' },
+  { id: 'warehouse', label: 'Mapa bodegas' },
 ]
 
 const quickLinksMock = [
