@@ -4,6 +4,9 @@ const express_1 = require("express");
 const bodegasMock_1 = require("../data/bodegasMock");
 const router = (0, express_1.Router)();
 const ESTADOS_VALIDOS = ['DISPONIBLE', 'RESERVADA', 'OCUPADA', 'POR_VENCER'];
+const RUT_REGEX = /^(\d{1,2})\.?(\d{3})\.?(\d{3})-([0-9kK])$/;
+const PHONE_REGEX = /^\+?[0-9\s()-]{6,20}$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 function isValidDate(value) {
     if (typeof value !== 'string') {
         return false;
@@ -26,6 +29,46 @@ function sanitizeUpdates(payload) {
             throw new Error('El nombre debe ser un texto no vacío.');
         }
         sanitized.nombre = nombre.trim();
+    }
+    if ('contratanteNombre' in updates) {
+        const contratanteNombre = updates.contratanteNombre;
+        if (typeof contratanteNombre !== 'string') {
+            throw new Error('El nombre del contratante debe ser un texto válido.');
+        }
+        sanitized.contratanteNombre = contratanteNombre.trim();
+    }
+    if ('contratanteRut' in updates) {
+        const contratanteRut = updates.contratanteRut;
+        if (typeof contratanteRut !== 'string') {
+            throw new Error('El RUT del contratante no es válido.');
+        }
+        const trimmedRut = contratanteRut.trim();
+        if (trimmedRut && !RUT_REGEX.test(trimmedRut)) {
+            throw new Error('El RUT del contratante no es válido.');
+        }
+        sanitized.contratanteRut = trimmedRut;
+    }
+    if ('contratanteTelefono' in updates) {
+        const contratanteTelefono = updates.contratanteTelefono;
+        if (typeof contratanteTelefono !== 'string') {
+            throw new Error('El teléfono del contratante no es válido.');
+        }
+        const trimmedTelefono = contratanteTelefono.trim();
+        if (trimmedTelefono && !PHONE_REGEX.test(trimmedTelefono)) {
+            throw new Error('El teléfono del contratante no es válido.');
+        }
+        sanitized.contratanteTelefono = trimmedTelefono;
+    }
+    if ('contratanteEmail' in updates) {
+        const contratanteEmail = updates.contratanteEmail;
+        if (typeof contratanteEmail !== 'string') {
+            throw new Error('El correo electrónico del contratante no es válido.');
+        }
+        const trimmedEmail = contratanteEmail.trim();
+        if (trimmedEmail && !EMAIL_REGEX.test(trimmedEmail)) {
+            throw new Error('El correo electrónico del contratante no es válido.');
+        }
+        sanitized.contratanteEmail = trimmedEmail;
     }
     if ('metrosCuadrados' in updates) {
         const metrosCuadrados = updates.metrosCuadrados;
@@ -57,17 +100,25 @@ function sanitizeUpdates(payload) {
     }
     if ('fechaContratacion' in updates) {
         const fechaContratacion = updates.fechaContratacion;
-        if (!isValidDate(fechaContratacion)) {
+        if (typeof fechaContratacion !== 'string') {
             throw new Error('La fecha de contratación no es válida.');
         }
-        sanitized.fechaContratacion = fechaContratacion;
+        const trimmedFechaContratacion = fechaContratacion.trim();
+        if (trimmedFechaContratacion && !isValidDate(trimmedFechaContratacion)) {
+            throw new Error('La fecha de contratación no es válida.');
+        }
+        sanitized.fechaContratacion = trimmedFechaContratacion;
     }
     if ('fechaTermino' in updates) {
         const fechaTermino = updates.fechaTermino;
-        if (!isValidDate(fechaTermino)) {
+        if (typeof fechaTermino !== 'string') {
             throw new Error('La fecha de término no es válida.');
         }
-        sanitized.fechaTermino = fechaTermino;
+        const trimmedFechaTermino = fechaTermino.trim();
+        if (trimmedFechaTermino && !isValidDate(trimmedFechaTermino)) {
+            throw new Error('La fecha de término no es válida.');
+        }
+        sanitized.fechaTermino = trimmedFechaTermino;
     }
     if ('observaciones' in updates) {
         const observaciones = updates.observaciones;

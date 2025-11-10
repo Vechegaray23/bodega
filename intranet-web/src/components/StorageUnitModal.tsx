@@ -92,6 +92,11 @@ function StorageUnitModal({
     }
   }, [contractFeedback])
 
+  const requiresTenantInfo =
+    formState.estado === 'RESERVADA' ||
+    formState.estado === 'OCUPADA' ||
+    formState.estado === 'POR_VENCER'
+
   const formattedSize = useMemo(() => {
     const metros = Number(formState.metrosCuadrados)
     if (Number.isFinite(metros)) {
@@ -115,6 +120,14 @@ function StorageUnitModal({
       maximumFractionDigits: 2,
     })} UF`
   }, [formState.tarifaUf, unit.tarifaUf])
+
+  const fechaContratacionDisplayValue =
+    formState.fechaContratacion === ''
+      ? ''
+      : formState.fechaContratacion || unit.fechaContratacion
+
+  const fechaTerminoDisplayValue =
+    formState.fechaTermino === '' ? '' : formState.fechaTermino || unit.fechaTermino
 
   const formatDateForDisplay = (value: string): string => {
     if (!value) {
@@ -203,22 +216,37 @@ function StorageUnitModal({
       return
     }
 
-    if (!contratanteNombre) {
+    if (requiresTenantInfo && !contratanteNombre) {
       setFormError('Ingresá el nombre del contratante.')
       return
     }
 
-    if (!RUT_REGEX.test(contratanteRut)) {
+    if (!contratanteRut) {
+      if (requiresTenantInfo) {
+        setFormError('Ingresá un RUT de contratante válido.')
+        return
+      }
+    } else if (!RUT_REGEX.test(contratanteRut)) {
       setFormError('Ingresá un RUT de contratante válido.')
       return
     }
 
-    if (!PHONE_REGEX.test(contratanteTelefono)) {
+    if (!contratanteTelefono) {
+      if (requiresTenantInfo) {
+        setFormError('Ingresá un teléfono de contratante válido.')
+        return
+      }
+    } else if (!PHONE_REGEX.test(contratanteTelefono)) {
       setFormError('Ingresá un teléfono de contratante válido.')
       return
     }
 
-    if (!EMAIL_REGEX.test(contratanteEmail)) {
+    if (!contratanteEmail) {
+      if (requiresTenantInfo) {
+        setFormError('Ingresá un correo electrónico de contratante válido.')
+        return
+      }
+    } else if (!EMAIL_REGEX.test(contratanteEmail)) {
       setFormError('Ingresá un correo electrónico de contratante válido.')
       return
     }
@@ -238,17 +266,31 @@ function StorageUnitModal({
       return
     }
 
-    if (!fechaContratacion || Number.isNaN(Date.parse(fechaContratacion))) {
+    if (!fechaContratacion) {
+      if (requiresTenantInfo) {
+        setFormError('Seleccioná una fecha de contratación válida.')
+        return
+      }
+    } else if (Number.isNaN(Date.parse(fechaContratacion))) {
       setFormError('Seleccioná una fecha de contratación válida.')
       return
     }
 
-    if (!fechaTermino || Number.isNaN(Date.parse(fechaTermino))) {
+    if (!fechaTermino) {
+      if (requiresTenantInfo) {
+        setFormError('Seleccioná una fecha de término válida.')
+        return
+      }
+    } else if (Number.isNaN(Date.parse(fechaTermino))) {
       setFormError('Seleccioná una fecha de término válida.')
       return
     }
 
-    if (Date.parse(fechaTermino) < Date.parse(fechaContratacion)) {
+    if (
+      fechaContratacion &&
+      fechaTermino &&
+      Date.parse(fechaTermino) < Date.parse(fechaContratacion)
+    ) {
       setFormError('La fecha de término no puede ser anterior a la fecha de contratación.')
       return
     }
@@ -394,7 +436,7 @@ function StorageUnitModal({
                 value={formState.contratanteNombre}
                 onChange={handleChange}
                 placeholder="Ingresá el responsable del contrato"
-                required
+                required={requiresTenantInfo}
               />
             </label>
 
@@ -406,7 +448,7 @@ function StorageUnitModal({
                 value={formState.contratanteRut}
                 onChange={handleChange}
                 placeholder="12.345.678-9"
-                required
+                required={requiresTenantInfo}
               />
             </label>
 
@@ -418,7 +460,7 @@ function StorageUnitModal({
                 value={formState.contratanteTelefono}
                 onChange={handleChange}
                 placeholder="+56 9 1234 5678"
-                required
+                required={requiresTenantInfo}
               />
             </label>
 
@@ -430,7 +472,7 @@ function StorageUnitModal({
                 value={formState.contratanteEmail}
                 onChange={handleChange}
                 placeholder="correo@empresa.cl"
-                required
+                required={requiresTenantInfo}
               />
             </label>
 
@@ -492,7 +534,7 @@ function StorageUnitModal({
                 name="fechaContratacion"
                 value={formState.fechaContratacion}
                 onChange={handleChange}
-                required
+                required={requiresTenantInfo}
               />
             </label>
 
@@ -503,7 +545,7 @@ function StorageUnitModal({
                 name="fechaTermino"
                 value={formState.fechaTermino}
                 onChange={handleChange}
-                required
+                required={requiresTenantInfo}
               />
             </label>
 
@@ -555,11 +597,11 @@ function StorageUnitModal({
               </div>
               <div>
                 <dt>Contrato vigente desde</dt>
-                <dd>{formatDateForDisplay(formState.fechaContratacion || unit.fechaContratacion)}</dd>
+                <dd>{formatDateForDisplay(fechaContratacionDisplayValue)}</dd>
               </div>
               <div>
                 <dt>Contrato vigente hasta</dt>
-                <dd>{formatDateForDisplay(formState.fechaTermino || unit.fechaTermino)}</dd>
+                <dd>{formatDateForDisplay(fechaTerminoDisplayValue)}</dd>
               </div>
               <div className="storage-modal__details-notes">
                 <dt>Observaciones</dt>
