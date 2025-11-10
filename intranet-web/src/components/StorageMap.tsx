@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type KeyboardEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent, type KeyboardEvent } from 'react'
 import StorageUnitModal from './StorageUnitModal'
 import { getBodegas, updateBodega, type UpdateBodegaPayload } from '../services/bodegasService'
 import {
@@ -24,6 +24,7 @@ function StorageMap() {
   const [isSavingChanges, setIsSavingChanges] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
   const [saveSuccessMessage, setSaveSuccessMessage] = useState<string | null>(null)
+  const [newNote, setNewNote] = useState('')
   const statusLegend = getAllBodegaStatuses()
 
   const selectedUnit = useMemo(() => {
@@ -100,6 +101,24 @@ function StorageMap() {
     setSelectedUnitId(null)
     setSaveError(null)
     setSaveSuccessMessage(null)
+  }
+
+  const handleAddNote = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    const note = newNote.trim()
+    if (!note) {
+      return
+    }
+
+    setOperationalNotes((prevNotes) => [...prevNotes, note])
+    setNewNote('')
+  }
+
+  const handleRemoveNote = (indexToRemove: number) => {
+    setOperationalNotes((prevNotes) =>
+      prevNotes.filter((_, noteIndex) => noteIndex !== indexToRemove)
+    )
   }
 
   const handleSaveChanges = async (updates: UpdateBodegaPayload) => {
@@ -214,9 +233,36 @@ function StorageMap() {
           </section>
           <section className="warehouse-notes">
             <h3>Notas operativas</h3>
+            <form className="warehouse-notes__form" onSubmit={handleAddNote}>
+              <label className="warehouse-notes__label" htmlFor="warehouse-notes-input">
+                Nueva nota
+              </label>
+              <div className="warehouse-notes__input-group">
+                <input
+                  id="warehouse-notes-input"
+                  type="text"
+                  value={newNote}
+                  onChange={(event) => setNewNote(event.target.value)}
+                  placeholder="Agregá un recordatorio operativo"
+                />
+                <button type="submit" disabled={!newNote.trim()}>
+                  Añadir
+                </button>
+              </div>
+            </form>
             <ul>
-              {operationalNotes.map((note) => (
-                <li key={note}>{note}</li>
+              {operationalNotes.map((note, index) => (
+                <li key={`${note}-${index}`}>
+                  <span>{note}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveNote(index)}
+                    className="warehouse-notes__remove"
+                    aria-label={`Eliminar nota: ${note}`}
+                  >
+                    Eliminar
+                  </button>
+                </li>
               ))}
             </ul>
           </section>
