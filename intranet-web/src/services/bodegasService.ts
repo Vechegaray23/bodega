@@ -6,13 +6,10 @@ import type { StorageUnit } from '../domain/storageUnits'
 const RESOURCE_PATH = '/bodegas'
 
 export type UpdateBodegaPayload = {
-  nombre?: string
   contratanteNombre?: string
   contratanteRut?: string
   contratanteTelefono?: string
   contratanteEmail?: string
-  metrosCuadrados?: number
-  piso?: number
   estado?: BodegaStatus
   tarifaUf?: number
   fechaContratacion?: string

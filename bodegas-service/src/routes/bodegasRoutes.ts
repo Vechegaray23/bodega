@@ -1,7 +1,15 @@
 import { Router } from 'express';
 
-import { bodegasMock } from '../data/bodegasMock';
-import type { Bodega, EstadoBodega } from '../domain/bodegas';
+import { bodegasContractsMock } from '../data/bodegasContractsMock';
+import { bodegasInfoMock } from '../data/bodegasInfoMock';
+import {
+  createEmptyContract,
+  mergeBodegaData,
+  type Bodega,
+  type BodegaContract,
+  type BodegaInfo,
+  type EstadoBodega,
+} from '../domain/bodegas';
 
 const router = Router();
 
@@ -10,23 +18,7 @@ const RUT_REGEX = /^(\d{1,2})\.?(\d{3})\.?(\d{3})-([0-9kK])$/;
 const PHONE_REGEX = /^\+?[0-9\s()-]{6,20}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-type UpdatePayload = Partial<
-  Pick<
-    Bodega,
-    | 'nombre'
-    | 'contratanteNombre'
-    | 'contratanteRut'
-    | 'contratanteTelefono'
-    | 'contratanteEmail'
-    | 'metrosCuadrados'
-    | 'piso'
-    | 'estado'
-    | 'tarifaUf'
-    | 'fechaContratacion'
-    | 'fechaTermino'
-    | 'observaciones'
-  >
->;
+type UpdatePayload = Partial<Omit<BodegaContract, 'bodegaId'>>;
 
 function isValidDate(value: unknown): value is string {
   if (typeof value !== 'string') {
@@ -37,8 +29,22 @@ function isValidDate(value: unknown): value is string {
   return !Number.isNaN(time);
 }
 
-function findBodegaIndex(id: string): number {
-  return bodegasMock.findIndex((item) => item.id === id || item.codigo === id);
+function findBodegaInfo(identifier: string): BodegaInfo | undefined {
+  return bodegasInfoMock.find((item) => item.id === identifier || item.codigo === identifier);
+}
+
+function findContractIndex(bodegaId: string): number {
+  return bodegasContractsMock.findIndex((item) => item.bodegaId === bodegaId);
+}
+
+function getContractForBodega(bodegaId: string): BodegaContract {
+  const index = findContractIndex(bodegaId);
+
+  if (index === -1) {
+    return createEmptyContract(bodegaId);
+  }
+
+  return bodegasContractsMock[index];
 }
 
 function sanitizeUpdates(payload: unknown): UpdatePayload {
@@ -48,14 +54,6 @@ function sanitizeUpdates(payload: unknown): UpdatePayload {
 
   const updates = payload as Record<string, unknown>;
   const sanitized: UpdatePayload = {};
-
-  if ('nombre' in updates) {
-    const nombre = updates.nombre;
-    if (typeof nombre !== 'string' || !nombre.trim()) {
-      throw new Error('El nombre debe ser un texto no vacío.');
-    }
-    sanitized.nombre = nombre.trim();
-  }
 
   if ('contratanteNombre' in updates) {
     const contratanteNombre = updates.contratanteNombre;
@@ -99,22 +97,6 @@ function sanitizeUpdates(payload: unknown): UpdatePayload {
       throw new Error('El correo electrónico del contratante no es válido.');
     }
     sanitized.contratanteEmail = trimmedEmail;
-  }
-
-  if ('metrosCuadrados' in updates) {
-    const metrosCuadrados = updates.metrosCuadrados;
-    if (typeof metrosCuadrados !== 'number' || Number.isNaN(metrosCuadrados) || metrosCuadrados <= 0) {
-      throw new Error('Los metros cuadrados deben ser un número mayor a cero.');
-    }
-    sanitized.metrosCuadrados = metrosCuadrados;
-  }
-
-  if ('piso' in updates) {
-    const piso = updates.piso;
-    if (typeof piso !== 'number' || !Number.isInteger(piso)) {
-      throw new Error('El piso debe ser un número entero.');
-    }
-    sanitized.piso = piso;
   }
 
   if ('estado' in updates) {
@@ -168,52 +150,74 @@ function sanitizeUpdates(payload: unknown): UpdatePayload {
   return sanitized;
 }
 
+function buildBodegaResponse(info: BodegaInfo): Bodega {
+  const contract = getContractForBodega(info.id);
+  return mergeBodegaData(info, contract);
+}
+
 router.get('/', (_req, res) => {
-  res.json(bodegasMock);
+  const bodegas = bodegasInfoMock.map(buildBodegaResponse);
+  res.json(bodegas);
 });
 
 router.get('/:id', (req, res) => {
   const { id } = req.params;
-  const bodega = bodegasMock.find((item) => item.id === id);
+  const info = findBodegaInfo(id);
 
-  if (!bodega) {
+  if (!info) {
     return res.status(404).json({ message: 'Bodega no encontrada' });
   }
 
+  const bodega = buildBodegaResponse(info);
   return res.json(bodega);
 });
 
 router.patch('/:id', (req, res) => {
   const { id } = req.params;
-  const index = findBodegaIndex(id);
+  const info = findBodegaInfo(id);
 
-  if (index === -1) {
+  if (!info) {
     return res.status(404).json({ message: 'Bodega no encontrada' });
   }
 
   try {
     const updates = sanitizeUpdates(req.body);
+    const contractIndex = findContractIndex(info.id);
+    const currentContract =
+      contractIndex === -1 ? createEmptyContract(info.id) : bodegasContractsMock[contractIndex];
 
     if (Object.keys(updates).length === 0) {
-      return res.json(bodegasMock[index]);
+      return res.json(mergeBodegaData(info, currentContract));
     }
 
-    const updatedBodega: Bodega = { ...bodegasMock[index], ...updates };
+    const updatedContract: BodegaContract = {
+      ...currentContract,
+      ...updates,
+    };
 
-    const fechaContratacion = Date.parse(updatedBodega.fechaContratacion);
-    const fechaTermino = Date.parse(updatedBodega.fechaTermino);
+    const fechaContratacionTime = updatedContract.fechaContratacion
+      ? Date.parse(updatedContract.fechaContratacion)
+      : Number.NaN;
+    const fechaTerminoTime = updatedContract.fechaTermino
+      ? Date.parse(updatedContract.fechaTermino)
+      : Number.NaN;
 
-    if (!Number.isNaN(fechaContratacion) && !Number.isNaN(fechaTermino)) {
-      if (fechaTermino < fechaContratacion) {
+    if (!Number.isNaN(fechaContratacionTime) && !Number.isNaN(fechaTerminoTime)) {
+      if (fechaTerminoTime < fechaContratacionTime) {
         return res
           .status(400)
           .json({ message: 'La fecha de término no puede ser anterior a la fecha de contratación.' });
       }
     }
 
-    bodegasMock[index] = updatedBodega;
+    if (contractIndex === -1) {
+      bodegasContractsMock.push(updatedContract);
+    } else {
+      bodegasContractsMock[contractIndex] = updatedContract;
+    }
 
-    return res.json(updatedBodega);
+    const response: Bodega = mergeBodegaData(info, updatedContract);
+    return res.json(response);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Datos de actualización inválidos';
     return res.status(400).json({ message });

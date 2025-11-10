@@ -15,13 +15,10 @@ type StorageUnitModalProps = {
 }
 
 type FormState = {
-  nombre: string
   contratanteNombre: string
   contratanteRut: string
   contratanteTelefono: string
   contratanteEmail: string
-  metrosCuadrados: string
-  piso: string
   estado: UpdateBodegaPayload['estado']
   tarifaUf: string
   fechaContratacion: string
@@ -43,13 +40,10 @@ function StorageUnitModal({
   successMessage,
 }: StorageUnitModalProps) {
   const [formState, setFormState] = useState<FormState>({
-    nombre: unit.nombre,
     contratanteNombre: unit.contratanteNombre,
     contratanteRut: unit.contratanteRut,
     contratanteTelefono: unit.contratanteTelefono,
     contratanteEmail: unit.contratanteEmail,
-    metrosCuadrados: unit.metrosCuadrados.toString(),
-    piso: unit.piso.toString(),
     estado: unit.status,
     tarifaUf: unit.tarifaUf.toString(),
     fechaContratacion: unit.fechaContratacion,
@@ -61,13 +55,10 @@ function StorageUnitModal({
 
   useEffect(() => {
     setFormState({
-      nombre: unit.nombre,
       contratanteNombre: unit.contratanteNombre,
       contratanteRut: unit.contratanteRut,
       contratanteTelefono: unit.contratanteTelefono,
       contratanteEmail: unit.contratanteEmail,
-      metrosCuadrados: unit.metrosCuadrados.toString(),
-      piso: unit.piso.toString(),
       estado: unit.status,
       tarifaUf: unit.tarifaUf.toString(),
       fechaContratacion: unit.fechaContratacion,
@@ -92,19 +83,13 @@ function StorageUnitModal({
     }
   }, [contractFeedback])
 
+  const currentStatus = formState.estado ?? unit.status
   const requiresTenantInfo =
-    formState.estado === 'RESERVADA' ||
-    formState.estado === 'OCUPADA' ||
-    formState.estado === 'POR_VENCER'
+    currentStatus === 'RESERVADA' ||
+    currentStatus === 'OCUPADA' ||
+    currentStatus === 'POR_VENCER'
 
-  const formattedSize = useMemo(() => {
-    const metros = Number(formState.metrosCuadrados)
-    if (Number.isFinite(metros)) {
-      return `${metros} m²`
-    }
-
-    return unit.size
-  }, [formState.metrosCuadrados, unit.size])
+  const formattedSize = unit.size
 
   const formattedTarifaUf = useMemo(() => {
     const tarifa = Number(formState.tarifaUf)
@@ -143,7 +128,7 @@ function StorageUnitModal({
   }
 
   const contractPreview = useMemo(() => {
-    if (formState.estado !== 'RESERVADA' && formState.estado !== 'OCUPADA') {
+    if (currentStatus !== 'RESERVADA' && currentStatus !== 'OCUPADA') {
       return ''
     }
 
@@ -152,7 +137,7 @@ function StorageUnitModal({
       return trimmed || fallback
     }
 
-    const parseNumber = (value: string, fallback: number): number => {
+    const parseTarifaUf = (value: string, fallback: number): number => {
       const parsed = Number(value)
       if (!Number.isFinite(parsed)) {
         return fallback
@@ -165,11 +150,11 @@ function StorageUnitModal({
     const fechaTermino = formState.fechaTermino || unit.fechaTermino
 
     return createStorageContractDocument({
-      bodegaNombre: sanitizeText(formState.nombre, unit.nombre),
+      bodegaNombre: unit.nombre,
       bodegaCodigo: unit.codigo || unit.id,
-      metrosCuadrados: parseNumber(formState.metrosCuadrados, unit.metrosCuadrados),
-      piso: parseNumber(formState.piso, unit.piso),
-      tarifaUf: parseNumber(formState.tarifaUf, unit.tarifaUf),
+      metrosCuadrados: unit.metrosCuadrados,
+      piso: unit.piso,
+      tarifaUf: parseTarifaUf(formState.tarifaUf, unit.tarifaUf),
       fechaContratacion,
       fechaTermino,
       contratanteNombre: sanitizeText(formState.contratanteNombre, unit.contratanteNombre),
@@ -177,13 +162,10 @@ function StorageUnitModal({
       contratanteTelefono: sanitizeText(formState.contratanteTelefono, unit.contratanteTelefono),
       contratanteEmail: sanitizeText(formState.contratanteEmail, unit.contratanteEmail),
       observaciones: sanitizeText(formState.observaciones, unit.observaciones),
-      estado:
-        formState.estado === 'RESERVADA' || formState.estado === 'OCUPADA'
-          ? formState.estado
-          : undefined,
+      estado: currentStatus === 'RESERVADA' || currentStatus === 'OCUPADA' ? currentStatus : undefined,
       generatedAt: new Date(),
     })
-  }, [formState, unit])
+  }, [currentStatus, formState, unit])
 
   const handleChange = (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -199,22 +181,15 @@ function StorageUnitModal({
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
-    const nombre = formState.nombre.trim()
     const contratanteNombre = formState.contratanteNombre.trim()
     const contratanteRut = formState.contratanteRut.trim()
     const contratanteTelefono = formState.contratanteTelefono.trim()
     const contratanteEmail = formState.contratanteEmail.trim()
-    const metrosCuadrados = Number(formState.metrosCuadrados)
-    const piso = Number(formState.piso)
     const tarifaUf = Number(formState.tarifaUf)
     const fechaContratacion = formState.fechaContratacion
     const fechaTermino = formState.fechaTermino
     const observaciones = formState.observaciones.trim()
-
-    if (!nombre) {
-      setFormError('El nombre es obligatorio.')
-      return
-    }
+    const estadoSeleccionado = currentStatus
 
     if (requiresTenantInfo && !contratanteNombre) {
       setFormError('Ingresá el nombre del contratante.')
@@ -248,16 +223,6 @@ function StorageUnitModal({
       }
     } else if (!EMAIL_REGEX.test(contratanteEmail)) {
       setFormError('Ingresá un correo electrónico de contratante válido.')
-      return
-    }
-
-    if (!Number.isFinite(metrosCuadrados) || metrosCuadrados <= 0) {
-      setFormError('Ingresá una superficie válida (en m²).')
-      return
-    }
-
-    if (!Number.isInteger(piso)) {
-      setFormError('Ingresá un número de piso válido.')
       return
     }
 
@@ -298,14 +263,11 @@ function StorageUnitModal({
     setFormError(null)
 
     const payload: UpdateBodegaPayload = {
-      nombre,
       contratanteNombre,
       contratanteRut,
       contratanteTelefono,
       contratanteEmail,
-      metrosCuadrados,
-      piso,
-      estado: formState.estado,
+      estado: estadoSeleccionado,
       tarifaUf,
       fechaContratacion,
       fechaTermino,
@@ -420,11 +382,10 @@ function StorageUnitModal({
               <span>Nombre</span>
               <input
                 type="text"
-                name="nombre"
-                value={formState.nombre}
-                onChange={handleChange}
-                placeholder="Ingresá un nombre descriptivo"
-                required
+                value={unit.nombre}
+                readOnly
+                disabled
+                title="Este dato es fijo y no puede editarse"
               />
             </label>
 
@@ -480,11 +441,10 @@ function StorageUnitModal({
               <span>Metros cuadrados</span>
               <input
                 type="number"
-                name="metrosCuadrados"
-                min="1"
-                value={formState.metrosCuadrados}
-                onChange={handleChange}
-                required
+                value={unit.metrosCuadrados}
+                readOnly
+                disabled
+                title="Este dato es fijo y no puede editarse"
               />
             </label>
 
@@ -492,10 +452,10 @@ function StorageUnitModal({
               <span>Piso</span>
               <input
                 type="number"
-                name="piso"
-                value={formState.piso}
-                onChange={handleChange}
-                required
+                value={unit.piso}
+                readOnly
+                disabled
+                title="Este dato es fijo y no puede editarse"
               />
             </label>
 
@@ -516,7 +476,7 @@ function StorageUnitModal({
               <span>Estado</span>
               <select
                 name="estado"
-                value={formState.estado}
+                value={currentStatus}
                 onChange={handleChange}
               >
                 {STATUS_OPTIONS.map((status) => (
@@ -573,7 +533,7 @@ function StorageUnitModal({
               </div>
               <div>
                 <dt>Último estado reportado</dt>
-                <dd>{getBodegaStatusLabel(formState.estado ?? unit.status)}</dd>
+                <dd>{getBodegaStatusLabel(currentStatus)}</dd>
               </div>
               <div>
                 <dt>Tarifa mensual</dt>
