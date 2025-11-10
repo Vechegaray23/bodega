@@ -106,6 +106,23 @@ body {
   align-content: start;
 }
 
+.hero__cards-message {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 1.25rem 1.5rem;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 20px;
+  color: rgba(226, 232, 240, 0.85);
+  text-align: center;
+  font-size: 0.95rem;
+}
+
+.hero__cards-message--error {
+  border-color: rgba(248, 113, 113, 0.45);
+  color: #fecaca;
+}
+
 .highlight-card {
   background: rgba(15, 23, 42, 0.6);
   border: 1px solid rgba(148, 163, 184, 0.25);
