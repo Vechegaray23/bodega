@@ -159,6 +159,13 @@ body {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
 .button--primary {
   background: linear-gradient(135deg, #93c5fd, #3b82f6);
   color: #0f172a;

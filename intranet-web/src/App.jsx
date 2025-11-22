@@ -11,6 +11,18 @@ import {
 } from './services/dashboardService'
 import { useAuth } from './contexts/AuthContext'
 import { getBodegas } from './services/bodegasService'
+import { getBodegaStatusLabel } from './domain/bodegas'
+
+const OCCUPIED_STATUSES = new Set(['OCUPADA', 'POR_VENCER'])
+
+function toCsvValue(value) {
+  if (value === null || value === undefined) return '""'
+
+  const stringValue = typeof value === 'string' ? value : String(value)
+  const sanitized = stringValue.replace(/"/g, '""')
+
+  return `"${sanitized}"`
+}
 
 function Dashboard() {
   const [news, setNews] = useState([])
@@ -20,6 +32,11 @@ function Dashboard() {
   const [storageUnits, setStorageUnits] = useState([])
   const [isLoadingStorageUnits, setIsLoadingStorageUnits] = useState(true)
   const [storageUnitsError, setStorageUnitsError] = useState(null)
+
+  const occupiedUnits = useMemo(
+    () => storageUnits.filter((unit) => OCCUPIED_STATUSES.has(unit.status)),
+    [storageUnits]
+  )
 
   useEffect(() => {
     getDashboardNews().then(setNews)
@@ -62,14 +79,10 @@ function Dashboard() {
   }, [])
 
   const kpiMetrics = useMemo(() => {
-    const OCCUPIED_STATUSES = new Set(['OCUPADA', 'POR_VENCER'])
     const EXPIRATION_THRESHOLD_DAYS = 30
     const MS_PER_DAY = 1000 * 60 * 60 * 24
 
     const totalUnits = storageUnits.length
-    const occupiedUnits = storageUnits.filter((unit) =>
-      OCCUPIED_STATUSES.has(unit.status)
-    )
 
     const occupancyRate = totalUnits === 0 ? 0 : Math.round((occupiedUnits.length / totalUnits) * 100)
 
@@ -144,7 +157,55 @@ function Dashboard() {
               : `${occupiedUnits.length} bodegas facturando`,
       },
     ]
-  }, [storageUnits])
+  }, [occupiedUnits, storageUnits])
+
+  const handleDownloadOccupiedCsv = () => {
+    const headers = [
+      'ID',
+      'Código',
+      'Nombre',
+      'Estado',
+      'Contratante',
+      'RUT',
+      'Teléfono',
+      'Email',
+      'Metros cuadrados',
+      'Piso',
+      'Tarifa (UF)',
+      'Fecha de contratación',
+      'Fecha de término',
+      'Observaciones',
+    ]
+
+    const rows = occupiedUnits.map((unit) => [
+      unit.id,
+      unit.codigo,
+      unit.nombre,
+      getBodegaStatusLabel(unit.status),
+      unit.contratanteNombre,
+      unit.contratanteRut,
+      unit.contratanteTelefono,
+      unit.contratanteEmail,
+      unit.metrosCuadrados,
+      unit.piso,
+      unit.tarifaUf,
+      unit.fechaContratacion,
+      unit.fechaTermino,
+      unit.observaciones,
+    ])
+
+    const csvContent = [headers, ...rows]
+      .map((row) => row.map(toCsvValue).join(','))
+      .join('\n')
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = 'bodegas-ocupadas.csv'
+    link.click()
+    URL.revokeObjectURL(url)
+  }
 
   return (
     <>
@@ -156,7 +217,17 @@ function Dashboard() {
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Integer sed mauris sed orci feugiat tempus.
           </p>
           <div className="hero__actions">
-            <button className="button button--primary">Lorem ipsum</button>
+            <button
+              className="button button--primary"
+              onClick={handleDownloadOccupiedCsv}
+              disabled={
+                isLoadingStorageUnits ||
+                Boolean(storageUnitsError) ||
+                occupiedUnits.length === 0
+              }
+            >
+              Descargar CSV bodegas ocupadas
+            </button>
             <button className="button button--ghost">Dolor sit</button>
           </div>
         </div>
